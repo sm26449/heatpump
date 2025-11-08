@@ -1,0 +1,857 @@
+[
+    {
+        "id": "2c08707be53937dd",
+        "type": "tab",
+        "label": "HeatPump-Enhanced",
+        "disabled": false,
+        "info": "Enhanced Heat Pump Control with Graphs, Logging, Scheduler & InfluxDB",
+        "env": []
+    },
+    {
+        "id": "81d4daeba502d870",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "HeatPump Web Interface",
+        "url": "/heatpump",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 480,
+        "wires": [
+            [
+                "3c5f542c443a2e60"
+            ]
+        ]
+    },
+    {
+        "id": "3c5f542c443a2e60",
+        "type": "template",
+        "z": "2c08707be53937dd",
+        "name": "Enhanced HTML Interface",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"ro\">\n\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">\n    <meta name=\"theme-color\" content=\"#0ea5e9\">\n    <title>Smart Heat Pump Control</title>\n\n    <!-- Modern Font -->\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap\" rel=\"stylesheet\">\n\n    <!-- Chart.js -->\n    <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js\"></script>\n\n    <!-- Feather Icons -->\n    <script src=\"https://unpkg.com/feather-icons\"></script>\n\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n            -webkit-tap-highlight-color: transparent;\n        }\n\n        :root {\n            /* Modern Color Palette */\n            --primary: #0ea5e9;\n            --primary-dark: #0284c7;\n            --primary-light: #38bdf8;\n            --primary-bg: rgba(14, 165, 233, 0.1);\n\n            --success: #22c55e;\n            --warning: #f59e0b;\n            --danger: #ef4444;\n            --info: #6366f1;\n\n            --bg-primary: #ffffff;\n            --bg-secondary: #f8fafc;\n            --bg-tertiary: #f1f5f9;\n\n            --text-primary: #0f172a;\n            --text-secondary: #64748b;\n            --text-muted: #94a3b8;\n\n            --border: #e2e8f0;\n            --border-light: #f1f5f9;\n\n            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);\n            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);\n            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);\n            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);\n            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);\n\n            --radius-sm: 0.375rem;\n            --radius: 0.75rem;\n            --radius-lg: 1rem;\n            --radius-xl: 1.5rem;\n\n            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);\n        }\n\n        [data-theme=\"dark\"] {\n            --bg-primary: #0f172a;\n            --bg-secondary: #1e293b;\n            --bg-tertiary: #334155;\n\n            --text-primary: #f1f5f9;\n            --text-secondary: #cbd5e1;\n            --text-muted: #94a3b8;\n\n            --border: #334155;\n            --border-light: #475569;\n\n            --primary-bg: rgba(14, 165, 233, 0.2);\n        }\n\n        body {\n            font-family: 'Inter', system-ui, -apple-system, sans-serif;\n            background: var(--bg-secondary);\n            color: var(--text-primary);\n            line-height: 1.5;\n            overflow-x: hidden;\n            -webkit-font-smoothing: antialiased;\n        }\n\n        /* Mobile First App Shell */\n        .app-container {\n            min-height: 100vh;\n            display: flex;\n            flex-direction: column;\n        }\n\n        /* Modern Header */\n        .header {\n            background: var(--bg-primary);\n            border-bottom: 1px solid var(--border);\n            position: sticky;\n            top: 0;\n            z-index: 40;\n            backdrop-filter: blur(10px);\n            background: rgba(255, 255, 255, 0.9);\n        }\n\n        [data-theme=\"dark\"] .header {\n            background: rgba(15, 23, 42, 0.9);\n        }\n\n        .header-content {\n            padding: 1rem;\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n        }\n\n        .logo {\n            display: flex;\n            align-items: center;\n            gap: 0.75rem;\n        }\n\n        .logo-icon {\n            width: 40px;\n            height: 40px;\n            background: linear-gradient(135deg, var(--primary), var(--primary-dark));\n            border-radius: var(--radius);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            color: white;\n            font-weight: 600;\n            font-size: 1.25rem;\n        }\n\n        .logo-text {\n            display: flex;\n            flex-direction: column;\n        }\n\n        .logo-title {\n            font-weight: 600;\n            font-size: 1rem;\n            line-height: 1.2;\n        }\n\n        .logo-subtitle {\n            font-size: 0.75rem;\n            color: var(--text-secondary);\n        }\n\n        /* Status Badge */\n        .status-badge {\n            display: flex;\n            align-items: center;\n            gap: 0.5rem;\n            padding: 0.5rem 1rem;\n            background: var(--bg-secondary);\n            border-radius: var(--radius-xl);\n            font-size: 0.875rem;\n            font-weight: 500;\n        }\n\n        .status-dot {\n            width: 8px;\n            height: 8px;\n            border-radius: 50%;\n            background: var(--danger);\n            position: relative;\n        }\n\n        .status-dot.active {\n            background: var(--success);\n        }\n\n        .status-dot.active::before {\n            content: '';\n            position: absolute;\n            inset: -4px;\n            border-radius: 50%;\n            background: var(--success);\n            opacity: 0.3;\n            animation: pulse 2s infinite;\n        }\n\n        @keyframes pulse {\n\n            0%,\n            100% {\n                transform: scale(1);\n                opacity: 0.3;\n            }\n\n            50% {\n                transform: scale(1.5);\n                opacity: 0;\n            }\n        }\n\n        /* Navigation Pills */\n        .nav-container {\n            padding: 1rem;\n            background: var(--bg-primary);\n            border-bottom: 1px solid var(--border);\n            position: sticky;\n            top: 73px;\n            z-index: 30;\n            overflow-x: auto;\n            -webkit-overflow-scrolling: touch;\n        }\n\n        .nav-pills {\n            display: flex;\n            gap: 0.5rem;\n            min-width: max-content;\n        }\n\n        .nav-pill {\n            padding: 0.625rem 1.25rem;\n            background: var(--bg-secondary);\n            border: none;\n            border-radius: var(--radius-xl);\n            color: var(--text-secondary);\n            font-weight: 500;\n            font-size: 0.875rem;\n            cursor: pointer;\n            transition: var(--transition);\n            white-space: nowrap;\n            display: flex;\n            align-items: center;\n            gap: 0.5rem;\n        }\n\n        .nav-pill:hover {\n            background: var(--bg-tertiary);\n            color: var(--text-primary);\n        }\n\n        .nav-pill.active {\n            background: var(--primary);\n            color: white;\n            box-shadow: var(--shadow-md);\n        }\n\n        .nav-pill svg {\n            width: 16px;\n            height: 16px;\n        }\n\n        /* Main Content */\n        .main-content {\n            flex: 1;\n            padding: 1rem;\n            padding-bottom: 100px;\n        }\n\n        /* Cards */\n        .card {\n            background: var(--bg-primary);\n            border-radius: var(--radius-lg);\n            padding: 1.25rem;\n            margin-bottom: 1rem;\n            box-shadow: var(--shadow-sm);\n            transition: var(--transition);\n        }\n\n        .card-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            margin-bottom: 1rem;\n        }\n\n        .card-title {\n            font-weight: 600;\n            font-size: 1rem;\n            color: var(--text-primary);\n        }\n\n        .card-action {\n            padding: 0.375rem;\n            background: var(--bg-secondary);\n            border: none;\n            border-radius: var(--radius);\n            cursor: pointer;\n            color: var(--text-secondary);\n            transition: var(--transition);\n        }\n\n        .card-action:hover {\n            background: var(--bg-tertiary);\n            color: var(--primary);\n        }\n\n        /* Temperature Cards Grid */\n        .temp-grid {\n            display: grid;\n            grid-template-columns: repeat(2, 1fr);\n            gap: 0.75rem;\n            margin-bottom: 1.5rem;\n        }\n\n        .temp-card {\n            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));\n            border: 1px solid var(--border);\n            border-radius: var(--radius-lg);\n            padding: 1.25rem;\n            position: relative;\n            overflow: hidden;\n        }\n\n        .temp-card.primary {\n            background: linear-gradient(135deg, var(--primary), var(--primary-dark));\n            border: none;\n            color: white;\n        }\n\n        .temp-card-icon {\n            position: absolute;\n            top: 0.75rem;\n            right: 0.75rem;\n            opacity: 0.2;\n        }\n\n        .temp-label {\n            font-size: 0.75rem;\n            color: var(--text-secondary);\n            margin-bottom: 0.25rem;\n            font-weight: 500;\n            text-transform: uppercase;\n            letter-spacing: 0.5px;\n        }\n\n        .temp-card.primary .temp-label {\n            color: rgba(255, 255, 255, 0.9);\n        }\n\n        .temp-value {\n            font-size: 2rem;\n            font-weight: 600;\n            line-height: 1;\n        }\n\n        .temp-unit {\n            font-size: 1rem;\n            font-weight: 400;\n            opacity: 0.8;\n        }\n\n        .temp-trend {\n            display: inline-flex;\n            align-items: center;\n            gap: 0.25rem;\n            margin-top: 0.5rem;\n            padding: 0.25rem 0.5rem;\n            background: rgba(0, 0, 0, 0.1);\n            border-radius: var(--radius-sm);\n            font-size: 0.75rem;\n        }\n\n        /* Quick Actions */\n        .quick-actions {\n            display: grid;\n            grid-template-columns: repeat(2, 1fr);\n            gap: 0.75rem;\n            margin-bottom: 1.5rem;\n        }\n\n        .action-btn {\n            padding: 1rem;\n            background: var(--bg-primary);\n            border: 2px solid var(--border);\n            border-radius: var(--radius-lg);\n            cursor: pointer;\n            transition: var(--transition);\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            gap: 0.5rem;\n        }\n\n        .action-btn:hover {\n            transform: translateY(-2px);\n            box-shadow: var(--shadow-md);\n        }\n\n        .action-btn.active {\n            background: var(--primary);\n            border-color: var(--primary);\n            color: white;\n        }\n\n        .action-btn.success {\n            background: var(--success);\n            border-color: var(--success);\n            color: white;\n        }\n\n        .action-btn.danger {\n            background: var(--danger);\n            border-color: var(--danger);\n            color: white;\n        }\n\n        .action-icon {\n            width: 32px;\n            height: 32px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n        }\n\n        .action-text {\n            font-weight: 500;\n            font-size: 0.875rem;\n        }\n\n        /* Mode Selector */\n        .mode-grid {\n            display: grid;\n            grid-template-columns: repeat(3, 1fr);\n            gap: 0.75rem;\n            margin-bottom: 1.5rem;\n        }\n\n        .mode-card {\n            padding: 1rem;\n            background: var(--bg-secondary);\n            border: 2px solid var(--border);\n            border-radius: var(--radius-lg);\n            cursor: pointer;\n            transition: var(--transition);\n            text-align: center;\n        }\n\n        .mode-card:hover {\n            border-color: var(--primary);\n            transform: translateY(-2px);\n        }\n\n        .mode-card.active {\n            background: var(--primary);\n            border-color: var(--primary);\n            color: white;\n            box-shadow: var(--shadow-md);\n        }\n\n        .mode-card.active.cool {\n            background: linear-gradient(135deg, #06b6d4, #0891b2);\n            border-color: #06b6d4;\n        }\n\n        .mode-card.active.heat {\n            background: linear-gradient(135deg, #f97316, #ea580c);\n            border-color: #f97316;\n        }\n\n        .mode-icon {\n            font-size: 1.5rem;\n            margin-bottom: 0.25rem;\n        }\n\n        .mode-text {\n            font-weight: 500;\n            font-size: 0.875rem;\n        }\n\n        /* Modern Slider */\n        .slider-container {\n            margin: 1.5rem 0;\n        }\n\n        .slider-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: baseline;\n            margin-bottom: 1.5rem;\n        }\n\n        .slider-label {\n            font-weight: 500;\n            color: var(--text-primary);\n        }\n\n        .slider-value {\n            font-size: 2rem;\n            font-weight: 600;\n            color: var(--primary);\n        }\n\n        .slider-wrapper {\n            position: relative;\n            padding: 0.5rem 0;\n        }\n\n        .slider-track {\n            width: 100%;\n            height: 6px;\n            background: var(--bg-tertiary);\n            border-radius: 3px;\n            position: relative;\n        }\n\n        .slider-fill {\n            height: 100%;\n            background: linear-gradient(90deg, var(--primary-light), var(--primary));\n            border-radius: 3px;\n            transition: width 0.1s;\n        }\n\n        .slider-input {\n            position: absolute;\n            width: 100%;\n            top: -8px;\n            height: 24px;\n            opacity: 0;\n            cursor: pointer;\n        }\n\n        .slider-thumb {\n            width: 24px;\n            height: 24px;\n            background: white;\n            border: 3px solid var(--primary);\n            border-radius: 50%;\n            position: absolute;\n            top: -9px;\n            transform: translateX(-50%);\n            box-shadow: var(--shadow-md);\n            transition: transform 0.1s;\n        }\n\n        .slider-thumb.dragging {\n            transform: translateX(-50%) scale(1.2);\n        }\n\n        .slider-marks {\n            display: flex;\n            justify-content: space-between;\n            margin-top: 0.75rem;\n            padding: 0 12px;\n        }\n\n        .slider-mark {\n            font-size: 0.75rem;\n            color: var(--text-muted);\n        }\n\n        /* Stats Grid */\n        .stats-grid {\n            display: grid;\n            grid-template-columns: repeat(2, 1fr);\n            gap: 0.75rem;\n            margin-bottom: 1.5rem;\n        }\n\n        .stat-card {\n            padding: 1rem;\n            background: var(--bg-secondary);\n            border-radius: var(--radius);\n            border: 1px solid var(--border);\n        }\n\n        .stat-label {\n            font-size: 0.75rem;\n            color: var(--text-secondary);\n            margin-bottom: 0.25rem;\n        }\n\n        .stat-value {\n            font-size: 1.25rem;\n            font-weight: 600;\n            color: var(--text-primary);\n        }\n\n        /* Schedule List */\n        .schedule-list {\n            space-y: 0.75rem;\n        }\n\n        .schedule-item {\n            padding: 1rem;\n            background: var(--bg-secondary);\n            border-radius: var(--radius);\n            border: 1px solid var(--border);\n            margin-bottom: 0.75rem;\n        }\n\n        .schedule-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            margin-bottom: 0.75rem;\n        }\n\n        .schedule-title {\n            font-weight: 500;\n        }\n\n        .schedule-toggle {\n            width: 44px;\n            height: 24px;\n            background: var(--bg-tertiary);\n            border-radius: 12px;\n            position: relative;\n            cursor: pointer;\n            transition: var(--transition);\n        }\n\n        .schedule-toggle.active {\n            background: var(--primary);\n        }\n\n        .schedule-toggle-thumb {\n            width: 20px;\n            height: 20px;\n            background: white;\n            border-radius: 50%;\n            position: absolute;\n            top: 2px;\n            left: 2px;\n            transition: var(--transition);\n            box-shadow: var(--shadow-sm);\n        }\n\n        .schedule-toggle.active .schedule-toggle-thumb {\n            left: 22px;\n        }\n\n        .schedule-days {\n            display: flex;\n            gap: 0.375rem;\n            margin-bottom: 0.75rem;\n        }\n\n        .day-badge {\n            width: 32px;\n            height: 32px;\n            border-radius: var(--radius);\n            background: var(--bg-primary);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 0.75rem;\n            font-weight: 500;\n            color: var(--text-secondary);\n        }\n\n        .day-badge.active {\n            background: var(--primary);\n            color: white;\n        }\n\n        .schedule-time {\n            display: flex;\n            align-items: center;\n            gap: 0.5rem;\n            font-size: 0.875rem;\n            color: var(--text-secondary);\n        }\n\n        /* Bottom Navigation */\n        .bottom-nav {\n            position: fixed;\n            bottom: 0;\n            left: 0;\n            right: 0;\n            background: var(--bg-primary);\n            border-top: 1px solid var(--border);\n            padding: 0.5rem;\n            display: grid;\n            grid-template-columns: repeat(5, 1fr);\n            gap: 0.5rem;\n            z-index: 40;\n            box-shadow: 0 -10px 15px -3px rgb(0 0 0 / 0.1);\n        }\n\n        .bottom-nav-item {\n            padding: 0.75rem 0.5rem;\n            background: none;\n            border: none;\n            border-radius: var(--radius);\n            cursor: pointer;\n            transition: var(--transition);\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            gap: 0.25rem;\n            color: var(--text-secondary);\n        }\n\n        .bottom-nav-item:hover {\n            background: var(--bg-secondary);\n        }\n\n        .bottom-nav-item.active {\n            background: var(--primary-bg);\n            color: var(--primary);\n        }\n\n        .bottom-nav-icon {\n            width: 20px;\n            height: 20px;\n        }\n\n        .bottom-nav-text {\n            font-size: 0.625rem;\n            font-weight: 500;\n        }\n\n        /* Floating Action Button */\n        .fab {\n            position: fixed;\n            bottom: 100px;\n            right: 1rem;\n            width: 56px;\n            height: 56px;\n            background: linear-gradient(135deg, var(--primary), var(--primary-dark));\n            color: white;\n            border: none;\n            border-radius: 50%;\n            box-shadow: var(--shadow-xl);\n            cursor: pointer;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            transition: var(--transition);\n            z-index: 30;\n        }\n\n        .fab:hover {\n            transform: scale(1.1);\n            box-shadow: var(--shadow-2xl);\n        }\n\n        .fab:active {\n            transform: scale(0.95);\n        }\n\n        /* Toast Notifications */\n        .toast-container {\n            position: fixed;\n            top: 1rem;\n            right: 1rem;\n            left: 1rem;\n            z-index: 50;\n            pointer-events: none;\n        }\n\n        .toast {\n            background: var(--bg-primary);\n            border-radius: var(--radius);\n            padding: 1rem;\n            margin-bottom: 0.75rem;\n            box-shadow: var(--shadow-lg);\n            border-left: 4px solid var(--primary);\n            transform: translateX(calc(100% + 2rem));\n            opacity: 0;\n            transition: var(--transition);\n            pointer-events: auto;\n        }\n\n        .toast.show {\n            transform: translateX(0);\n            opacity: 1;\n        }\n\n        .toast.success {\n            border-left-color: var(--success);\n        }\n\n        .toast.error {\n            border-left-color: var(--danger);\n        }\n\n        .toast-content {\n            display: flex;\n            align-items: center;\n            gap: 0.75rem;\n        }\n\n        .toast-icon {\n            width: 20px;\n            height: 20px;\n            flex-shrink: 0;\n        }\n\n        .toast-message {\n            flex: 1;\n            font-size: 0.875rem;\n            font-weight: 500;\n        }\n\n        /* Loading States */\n        .skeleton {\n            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);\n            background-size: 200% 100%;\n            animation: loading 1.5s infinite;\n            border-radius: var(--radius);\n        }\n\n        @keyframes loading {\n            0% {\n                background-position: 200% 0;\n            }\n\n            100% {\n                background-position: -200% 0;\n            }\n        }\n\n        /* Charts Container */\n        .chart-container {\n            position: relative;\n            height: 250px;\n            margin: 1rem 0;\n        }\n\n        /* Tab Content */\n        .tab-content {\n            display: none;\n            animation: fadeIn 0.3s ease-in-out;\n        }\n\n        .tab-content.active {\n            display: block;\n        }\n\n        @keyframes fadeIn {\n            from {\n                opacity: 0;\n                transform: translateY(10px);\n            }\n\n            to {\n                opacity: 1;\n                transform: translateY(0);\n            }\n        }\n\n        /* Responsive Design */\n        @media (min-width: 768px) {\n            .header-content {\n                padding: 1.5rem 2rem;\n            }\n\n            .nav-container {\n                padding: 1rem 2rem;\n            }\n\n            .main-content {\n                padding: 2rem;\n                max-width: 1200px;\n                margin: 0 auto;\n            }\n\n            .temp-grid {\n                grid-template-columns: repeat(4, 1fr);\n            }\n\n            .quick-actions {\n                grid-template-columns: repeat(4, 1fr);\n            }\n\n            .stats-grid {\n                grid-template-columns: repeat(4, 1fr);\n            }\n\n            .bottom-nav {\n                display: none;\n            }\n\n            .main-content {\n                padding-bottom: 2rem;\n            }\n\n            .fab {\n                bottom: 2rem;\n                right: 2rem;\n            }\n\n            .toast-container {\n                left: auto;\n                max-width: 400px;\n            }\n        }\n\n        /* Animations */\n        @keyframes slideIn {\n            from {\n                transform: translateX(100%);\n            }\n\n            to {\n                transform: translateX(0);\n            }\n        }\n\n        @keyframes slideUp {\n            from {\n                transform: translateY(100%);\n            }\n\n            to {\n                transform: translateY(0);\n            }\n        }\n\n        /* Utility Classes */\n        .text-center {\n            text-align: center;\n        }\n\n        .hidden {\n            display: none;\n        }\n\n        .mt-1 {\n            margin-top: 0.5rem;\n        }\n\n        .mt-2 {\n            margin-top: 1rem;\n        }\n\n        .mt-3 {\n            margin-top: 1.5rem;\n        }\n\n        .mb-1 {\n            margin-bottom: 0.5rem;\n        }\n\n        .mb-2 {\n            margin-bottom: 1rem;\n        }\n\n        .mb-3 {\n            margin-bottom: 1.5rem;\n        }\n    </style>\n</head>\n\n<body>\n    <div class=\"app-container\">\n        <!-- Header -->\n        <header class=\"header\">\n            <div class=\"header-content\">\n                <div class=\"logo\">\n                    <div class=\"logo-icon\">HP</div>\n                    <div class=\"logo-text\">\n                        <div class=\"logo-title\">Smart Control</div>\n                        <div class=\"logo-subtitle\">Heat Pump System</div>\n                    </div>\n                </div>\n                <div class=\"status-badge\">\n                    <div class=\"status-dot\" id=\"status-dot\"></div>\n                    <span id=\"status-text\">Offline</span>\n                </div>\n            </div>\n        </header>\n\n        <!-- Navigation Pills (Desktop) -->\n        <nav class=\"nav-container\" id=\"desktop-nav\">\n            <div class=\"nav-pills\">\n                <button class=\"nav-pill active\" onclick=\"switchTab('dashboard')\">\n                    <i data-feather=\"home\"></i>\n                    Dashboard\n                </button>\n                <button class=\"nav-pill\" onclick=\"switchTab('control')\">\n                    <i data-feather=\"sliders\"></i>\n                    Control\n                </button>\n                <button class=\"nav-pill\" onclick=\"switchTab('analytics')\">\n                    <i data-feather=\"trending-up\"></i>\n                    Analytics\n                </button>\n                <button class=\"nav-pill\" onclick=\"switchTab('schedule')\">\n                    <i data-feather=\"calendar\"></i>\n                    Schedule\n                </button>\n                <button class=\"nav-pill\" onclick=\"switchTab('settings')\">\n                    <i data-feather=\"settings\"></i>\n                    Settings\n                </button>\n            </div>\n        </nav>\n\n        <!-- Main Content -->\n        <main class=\"main-content\">\n            <!-- Dashboard Tab -->\n            <div id=\"dashboard-tab\" class=\"tab-content active\">\n                <!-- Temperature Cards -->\n                <div class=\"temp-grid\">\n                    <div class=\"temp-card primary\">\n                        <svg class=\"temp-card-icon\" width=\"48\" height=\"48\" viewBox=\"0 0 24 24\" fill=\"none\"\n                            stroke=\"currentColor\" stroke-width=\"1\">\n                            <path d=\"M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z\" />\n                        </svg>\n                        <div class=\"temp-label\">Water In</div>\n                        <div class=\"temp-value\">\n                            <span id=\"water-in\">--</span>\n                            <span class=\"temp-unit\">°C</span>\n                        </div>\n                        <div class=\"temp-trend\">\n                            <i data-feather=\"trending-up\" style=\"width: 12px; height: 12px;\"></i>\n                            <span>+0.5°</span>\n                        </div>\n                    </div>\n\n                    <div class=\"temp-card\">\n                        <div class=\"temp-label\">Water Out</div>\n                        <div class=\"temp-value\">\n                            <span id=\"water-out\">--</span>\n                            <span class=\"temp-unit\">°C</span>\n                        </div>\n                    </div>\n\n                    <div class=\"temp-card\">\n                        <div class=\"temp-label\">Setpoint</div>\n                        <div class=\"temp-value\">\n                            <span id=\"water-set\">--</span>\n                            <span class=\"temp-unit\">°C</span>\n                        </div>\n                    </div>\n\n                    <div class=\"temp-card\">\n                        <div class=\"temp-label\">Indoor</div>\n                        <div class=\"temp-value\">\n                            <span id=\"indoor-temp\">--</span>\n                            <span class=\"temp-unit\">°C</span>\n                        </div>\n                    </div>\n                </div>\n\n                <!-- Quick Actions -->\n                <div class=\"quick-actions\">\n                    <button class=\"action-btn success\" onclick=\"startSystem()\" id=\"start-btn\">\n                        <div class=\"action-icon\">\n                            <i data-feather=\"play-circle\"></i>\n                        </div>\n                        <span class=\"action-text\">Start</span>\n                    </button>\n\n                    <button class=\"action-btn danger\" onclick=\"stopSystem()\" id=\"stop-btn\">\n                        <div class=\"action-icon\">\n                            <i data-feather=\"stop-circle\"></i>\n                        </div>\n                        <span class=\"action-text\">Stop</span>\n                    </button>\n\n                    <button class=\"action-btn\" onclick=\"switchTab('schedule')\">\n                        <div class=\"action-icon\">\n                            <i data-feather=\"clock\"></i>\n                        </div>\n                        <span class=\"action-text\">Schedule</span>\n                    </button>\n\n                    <button class=\"action-btn\" onclick=\"refreshData()\">\n                        <div class=\"action-icon\">\n                            <i data-feather=\"refresh-cw\"></i>\n                        </div>\n                        <span class=\"action-text\">Refresh</span>\n                    </button>\n                </div>\n\n                <!-- System Stats -->\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">System Statistics</h2>\n                        <button class=\"card-action\" onclick=\"refreshData()\">\n                            <i data-feather=\"refresh-cw\" style=\"width: 16px; height: 16px;\"></i>\n                        </button>\n                    </div>\n                    <div class=\"stats-grid\">\n                        <div class=\"stat-card\">\n                            <div class=\"stat-label\">Temperature Δ</div>\n                            <div class=\"stat-value\" id=\"temp-diff\">--°C</div>\n                        </div>\n                        <div class=\"stat-card\">\n                            <div class=\"stat-label\">Fan Speed</div>\n                            <div class=\"stat-value\" id=\"fan-speed\">--</div>\n                        </div>\n                        <div class=\"stat-card\">\n                            <div class=\"stat-label\">Efficiency</div>\n                            <div class=\"stat-value\" id=\"efficiency\">--%</div>\n                        </div>\n                        <div class=\"stat-card\">\n                            <div class=\"stat-label\">Runtime Today</div>\n                            <div class=\"stat-value\" id=\"runtime\">--h</div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Control Tab -->\n            <div id=\"control-tab\" class=\"tab-content\">\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">Mode Selection</h2>\n                    </div>\n                    <div class=\"mode-grid\">\n                        <div class=\"mode-card\" data-mode=\"cool\" onclick=\"selectMode('cool')\">\n                            <div class=\"mode-icon\">❄️</div>\n                            <div class=\"mode-text\">Cool</div>\n                        </div>\n                        <div class=\"mode-card\" data-mode=\"heat\" onclick=\"selectMode('heat')\">\n                            <div class=\"mode-icon\">🔥</div>\n                            <div class=\"mode-text\">Heat</div>\n                        </div>\n                        <div class=\"mode-card active\" data-mode=\"auto\" onclick=\"selectMode('auto')\">\n                            <div class=\"mode-icon\">♻️</div>\n                            <div class=\"mode-text\">Auto</div>\n                        </div>\n                    </div>\n                </div>\n\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">Temperature Control</h2>\n                    </div>\n                    <div class=\"slider-container\">\n                        <div class=\"slider-header\">\n                            <span class=\"slider-label\">Set Temperature</span>\n                            <div class=\"slider-value\">\n                                <span id=\"temp-value\">20</span>°C\n                            </div>\n                        </div>\n                        <div class=\"slider-wrapper\">\n                            <div class=\"slider-track\">\n                                <div class=\"slider-fill\" id=\"slider-fill\"></div>\n                            </div>\n                            <input type=\"range\" class=\"slider-input\" id=\"temp-slider\"\n                                   min=\"7\" max=\"55\" value=\"20\" step=\"0.5\"\n                                   oninput=\"updateTemp(this.value)\">\n                            <div class=\"slider-thumb\" id=\"slider-thumb\"></div>\n                        </div>\n                        <div class=\"slider-marks\">\n                            <span class=\"slider-mark\">7°C</span>\n                            <span class=\"slider-mark\">20°C</span>\n                            <span class=\"slider-mark\">35°C</span>\n                            <span class=\"slider-mark\">55°C</span>\n                        </div>\n                    </div>\n\n                    <div class=\"quick-actions mt-3\">\n                        <button class=\"action-btn active\" onclick=\"setPreset(18)\">\n                            <span>Eco</span>\n                        </button>\n                        <button class=\"action-btn\" onclick=\"setPreset(22)\">\n                            <span>Comfort</span>\n                        </button>\n                        <button class=\"action-btn\" onclick=\"setPreset(25)\">\n                            <span>Boost</span>\n                        </button>\n                        <button class=\"action-btn\" onclick=\"setPreset(16)\">\n                            <span>Night</span>\n                        </button>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Analytics Tab -->\n            <div id=\"analytics-tab\" class=\"tab-content\">\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">Temperature History</h2>\n                        <button class=\"card-action\" onclick=\"loadHistory(24)\">\n                            <i data-feather=\"refresh-cw\" style=\"width: 16px; height: 16px;\"></i>\n                        </button>\n                    </div>\n                    <div class=\"nav-pills mb-2\">\n                        <button class=\"nav-pill active\" onclick=\"loadHistory(24)\">24h</button>\n                        <button class=\"nav-pill\" onclick=\"loadHistory(48)\">48h</button>\n                        <button class=\"nav-pill\" onclick=\"loadHistory(168)\">7 days</button>\n                        <button class=\"nav-pill\" onclick=\"loadHistory(720)\">30 days</button>\n                    </div>\n                    <div class=\"chart-container\">\n                        <canvas id=\"tempChart\"></canvas>\n                    </div>\n                </div>\n\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">Energy Consumption</h2>\n                    </div>\n                    <div class=\"chart-container\">\n                        <canvas id=\"energyChart\"></canvas>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Schedule Tab -->\n            <div id=\"schedule-tab\" class=\"tab-content\">\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">Schedule Settings</h2>\n                        <div class=\"schedule-toggle\" id=\"schedule-enabled\" onclick=\"toggleSchedule()\">\n                            <div class=\"schedule-toggle-thumb\"></div>\n                        </div>\n                    </div>\n\n                    <div class=\"schedule-list\" id=\"schedule-list\">\n                        <!-- Schedule items will be inserted here -->\n                    </div>\n\n                    <button class=\"action-btn active\" onclick=\"addScheduleRule()\" style=\"width: 100%; margin-top: 1rem;\">\n                        <i data-feather=\"plus\"></i>\n                        <span>Add New Schedule</span>\n                    </button>\n                </div>\n            </div>\n\n            <!-- Settings Tab -->\n            <div id=\"settings-tab\" class=\"tab-content\">\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">System Settings</h2>\n                    </div>\n\n                    <div class=\"schedule-item\">\n                        <div class=\"schedule-header\">\n                            <span>Dark Mode</span>\n                            <div class=\"schedule-toggle\" onclick=\"toggleTheme()\">\n                                <div class=\"schedule-toggle-thumb\"></div>\n                            </div>\n                        </div>\n                    </div>\n\n                    <div class=\"schedule-item\">\n                        <div class=\"schedule-header\">\n                            <span>Notifications</span>\n                            <div class=\"schedule-toggle active\">\n                                <div class=\"schedule-toggle-thumb\"></div>\n                            </div>\n                        </div>\n                    </div>\n\n                    <div class=\"schedule-item\">\n                        <div class=\"schedule-header\">\n                            <span>Auto Refresh</span>\n                            <div class=\"schedule-toggle active\">\n                                <div class=\"schedule-toggle-thumb\"></div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n\n                <div class=\"card\">\n                    <div class=\"card-header\">\n                        <h2 class=\"card-title\">About</h2>\n                    </div>\n                    <div style=\"color: var(--text-secondary); font-size: 0.875rem;\">\n                        <p>Smart Heat Pump Control v2.0</p>\n                        <p class=\"mt-1\">Samsung DVM Integration</p>\n                        <p class=\"mt-1\">© 2024 Smart Home Systems</p>\n                    </div>\n                </div>\n            </div>\n        </main>\n\n        <!-- Bottom Navigation (Mobile) -->\n        <nav class=\"bottom-nav\">\n            <button class=\"bottom-nav-item active\" onclick=\"switchTab('dashboard')\">\n                <i data-feather=\"home\" class=\"bottom-nav-icon\"></i>\n                <span class=\"bottom-nav-text\">Home</span>\n            </button>\n            <button class=\"bottom-nav-item\" onclick=\"switchTab('control')\">\n                <i data-feather=\"sliders\" class=\"bottom-nav-icon\"></i>\n                <span class=\"bottom-nav-text\">Control</span>\n            </button>\n            <button class=\"bottom-nav-item\" onclick=\"switchTab('analytics')\">\n                <i data-feather=\"bar-chart-2\" class=\"bottom-nav-icon\"></i>\n                <span class=\"bottom-nav-text\">Stats</span>\n            </button>\n            <button class=\"bottom-nav-item\" onclick=\"switchTab('schedule')\">\n                <i data-feather=\"clock\" class=\"bottom-nav-icon\"></i>\n                <span class=\"bottom-nav-text\">Schedule</span>\n            </button>\n            <button class=\"bottom-nav-item\" onclick=\"switchTab('settings')\">\n                <i data-feather=\"settings\" class=\"bottom-nav-icon\"></i>\n                <span class=\"bottom-nav-text\">Settings</span>\n            </button>\n        </nav>\n\n        <!-- Floating Action Button -->\n        <button class=\"fab\" onclick=\"quickAction()\">\n            <i data-feather=\"power\"></i>\n        </button>\n\n        <!-- Toast Container -->\n        <div class=\"toast-container\" id=\"toast-container\"></div>\n    </div>\n\n    <script>\n        // Configuration\n        const API_BASE = '/api/heatpump';\n        let currentMode = 'auto';\n        let currentTemp = 20;\n        let systemData = {};\n        let tempChart = null;\n        let energyChart = null;\n        let scheduleRules = [];\n        let isDarkMode = false;\n\n        // Initialize\n        document.addEventListener('DOMContentLoaded', function() {\n            // Initialize Feather icons\n            feather.replace();\n            \n            // Apply saved theme\n            const savedTheme = localStorage.getItem('theme') || 'light';\n            document.documentElement.setAttribute('data-theme', savedTheme);\n            isDarkMode = savedTheme === 'dark';\n            \n            // Initialize charts\n            initCharts();\n            \n            // Initialize slider\n            initSlider();\n            \n            // Load initial data\n            refreshData();\n            loadSchedule();\n            loadHistory(24);\n            \n            // Auto refresh\n            setInterval(refreshData, 30000);\n            \n            // Initialize touch gestures\n            initTouchGestures();\n        });\n\n        // Initialize slider\n        function initSlider() {\n            const slider = document.getElementById('temp-slider');\n            const fill = document.getElementById('slider-fill');\n            const thumb = document.getElementById('slider-thumb');\n            \n            function updateSliderVisual(value) {\n                const min = parseFloat(slider.min);\n                const max = parseFloat(slider.max);\n                const percent = ((value - min) / (max - min)) * 100;\n                fill.style.width = percent + '%';\n                thumb.style.left = percent + '%';\n            }\n            \n            slider.addEventListener('input', function() {\n                updateSliderVisual(this.value);\n            });\n            \n            updateSliderVisual(slider.value);\n        }\n\n        // Tab switching\n        function switchTab(tabName) {\n            // Update nav pills\n            document.querySelectorAll('.nav-pill').forEach(pill => {\n                pill.classList.remove('active');\n            });\n            document.querySelectorAll(`.nav-pill`).forEach(pill => {\n                if (pill.textContent.toLowerCase().includes(tabName.toLowerCase()) ||\n                    pill.onclick.toString().includes(tabName)) {\n                    pill.classList.add('active');\n                }\n            });\n            \n            // Update bottom nav\n            document.querySelectorAll('.bottom-nav-item').forEach(item => {\n                item.classList.remove('active');\n            });\n            document.querySelectorAll('.bottom-nav-item').forEach(item => {\n                if (item.onclick.toString().includes(tabName)) {\n                    item.classList.add('active');\n                }\n            });\n            \n            // Update content\n            document.querySelectorAll('.tab-content').forEach(content => {\n                content.classList.remove('active');\n            });\n            document.getElementById(`${tabName}-tab`).classList.add('active');\n            \n            // Refresh icons\n            feather.replace();\n            \n            // Load tab-specific data\n            if (tabName === 'analytics') {\n                loadHistory(24);\n            }\n        }\n\n        // Refresh data\n        async function refreshData() {\n            try {\n                const response = await fetch(`${API_BASE}/status`);\n                if (response.ok) {\n                    const data = await response.json();\n                    updateUI(data);\n                } else {\n                    showToast('Failed to fetch data', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        // Update UI\n        function updateUI(data) {\n            systemData = data;\n            \n            // Update status\n            const statusDot = document.getElementById('status-dot');\n            const statusText = document.getElementById('status-text');\n            \n            if (data.ac_on === 1) {\n                statusDot.classList.add('active');\n                statusText.textContent = 'Online';\n                document.getElementById('start-btn').disabled = true;\n                document.getElementById('stop-btn').disabled = false;\n            } else {\n                statusDot.classList.remove('active');\n                statusText.textContent = 'Offline';\n                document.getElementById('start-btn').disabled = false;\n                document.getElementById('stop-btn').disabled = true;\n            }\n            \n            // Update temperatures with animation\n            animateValue('water-in', data.water_in_c);\n            animateValue('water-out', data.water_out_c);\n            animateValue('water-set', data.water_set_c);\n            animateValue('indoor-temp', data.indoor_temp_c);\n            \n            // Update stats\n            if (data.water_in_c && data.water_out_c) {\n                const diff = Math.abs(data.water_out_c - data.water_in_c);\n                document.getElementById('temp-diff').textContent = diff.toFixed(1) + '°C';\n                \n                // Calculate efficiency\n                const efficiency = (diff / data.water_set_c * 100).toFixed(0);\n                document.getElementById('efficiency').textContent = efficiency + '%';\n            }\n            \n            document.getElementById('fan-speed').textContent = data.fan_speed_text || 'Auto';\n            \n            // Calculate runtime (mock data for demo)\n            const runtime = Math.floor(Math.random() * 8) + 1;\n            document.getElementById('runtime').textContent = runtime + 'h';\n        }\n\n        // Animate value changes\n        function animateValue(id, value) {\n            if (value === undefined || value === null) {\n                document.getElementById(id).textContent = '--';\n                return;\n            }\n            \n            const element = document.getElementById(id);\n            const current = parseFloat(element.textContent) || 0;\n            const target = value;\n            const duration = 500;\n            const start = Date.now();\n            \n            const animate = () => {\n                const elapsed = Date.now() - start;\n                const progress = Math.min(elapsed / duration, 1);\n                const eased = 1 - Math.pow(1 - progress, 3);\n                const newValue = current + (target - current) * eased;\n                \n                element.textContent = newValue.toFixed(1);\n                \n                if (progress < 1) {\n                    requestAnimationFrame(animate);\n                }\n            };\n            \n            animate();\n        }\n\n        // Mode selection\n        function selectMode(mode) {\n            currentMode = mode;\n            document.querySelectorAll('.mode-card').forEach(card => {\n                card.classList.remove('active', 'cool', 'heat');\n            });\n            const selectedCard = document.querySelector(`[data-mode=\"${mode}\"]`);\n            selectedCard.classList.add('active', mode);\n            \n            // Adjust temperature range based on mode\n            const slider = document.getElementById('temp-slider');\n            if (mode === 'cool') {\n                slider.min = 7;\n                slider.max = 25;\n                currentTemp = Math.min(currentTemp, 25);\n            } else if (mode === 'heat') {\n                slider.min = 25;\n                slider.max = 55;\n                currentTemp = Math.max(currentTemp, 25);\n            }\n            slider.value = currentTemp;\n            updateTemp(currentTemp);\n        }\n\n        // Temperature update\n        function updateTemp(value) {\n            currentTemp = parseFloat(value);\n            document.getElementById('temp-value').textContent = currentTemp.toFixed(1);\n            \n            // Update slider visual\n            const slider = document.getElementById('temp-slider');\n            const fill = document.getElementById('slider-fill');\n            const thumb = document.getElementById('slider-thumb');\n            const min = parseFloat(slider.min);\n            const max = parseFloat(slider.max);\n            const percent = ((currentTemp - min) / (max - min)) * 100;\n            fill.style.width = percent + '%';\n            thumb.style.left = percent + '%';\n        }\n\n        // Set temperature preset\n        function setPreset(temp) {\n            currentTemp = temp;\n            document.getElementById('temp-slider').value = temp;\n            updateTemp(temp);\n            \n            // Update preset buttons\n            document.querySelectorAll('.action-btn').forEach(btn => {\n                btn.classList.remove('active');\n            });\n            event.target.closest('.action-btn').classList.add('active');\n        }\n\n        // System control\n        async function startSystem() {\n            try {\n                const response = await fetch(`${API_BASE}/control`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({\n                        action: 'start',\n                        mode: getModeValue(currentMode),\n                        temperature: currentTemp\n                    })\n                });\n                \n                if (response.ok) {\n                    showToast('System starting...', 'success');\n                    setTimeout(refreshData, 3000);\n                } else {\n                    showToast('Failed to start system', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        async function stopSystem() {\n            try {\n                const response = await fetch(`${API_BASE}/control`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({ action: 'stop' })\n                });\n                \n                if (response.ok) {\n                    showToast('System stopping...', 'success');\n                    setTimeout(refreshData, 3000);\n                } else {\n                    showToast('Failed to stop system', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        function getModeValue(mode) {\n            const modeMap = {\n                'cool': 1,\n                'heat': 4,\n                'auto': 0\n            };\n            return modeMap[mode] || 0;\n        }\n\n        // Quick action\n        function quickAction() {\n            if (systemData.ac_on === 1) {\n                stopSystem();\n            } else {\n                startSystem();\n            }\n        }\n\n        // Initialize charts\n        function initCharts() {\n            // Temperature chart\n            const tempCtx = document.getElementById('tempChart')?.getContext('2d');\n            if (tempCtx) {\n                tempChart = new Chart(tempCtx, {\n                    type: 'line',\n                    data: {\n                        labels: [],\n                        datasets: [{\n                            label: 'Water In',\n                            data: [],\n                            borderColor: '#0ea5e9',\n                            backgroundColor: 'rgba(14, 165, 233, 0.1)',\n                            tension: 0.4\n                        }, {\n                            label: 'Water Out',\n                            data: [],\n                            borderColor: '#f59e0b',\n                            backgroundColor: 'rgba(245, 158, 11, 0.1)',\n                            tension: 0.4\n                        }]\n                    },\n                    options: {\n                        responsive: true,\n                        maintainAspectRatio: false,\n                        plugins: {\n                            legend: {\n                                display: true,\n                                position: 'bottom'\n                            }\n                        },\n                        scales: {\n                            y: {\n                                beginAtZero: false,\n                                grid: {\n                                    display: true,\n                                    color: 'rgba(0, 0, 0, 0.05)'\n                                }\n                            },\n                            x: {\n                                grid: {\n                                    display: false\n                                }\n                            }\n                        }\n                    }\n                });\n            }\n\n            // Energy chart\n            const energyCtx = document.getElementById('energyChart')?.getContext('2d');\n            if (energyCtx) {\n                energyChart = new Chart(energyCtx, {\n                    type: 'bar',\n                    data: {\n                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],\n                        datasets: [{\n                            label: 'Energy (kWh)',\n                            data: [12, 19, 15, 17, 14, 13, 16],\n                            backgroundColor: '#0ea5e9'\n                        }]\n                    },\n                    options: {\n                        responsive: true,\n                        maintainAspectRatio: false,\n                        plugins: {\n                            legend: {\n                                display: false\n                            }\n                        },\n                        scales: {\n                            y: {\n                                beginAtZero: true,\n                                grid: {\n                                    display: true,\n                                    color: 'rgba(0, 0, 0, 0.05)'\n                                }\n                            },\n                            x: {\n                                grid: {\n                                    display: false\n                                }\n                            }\n                        }\n                    }\n                });\n            }\n        }\n\n        // Load history data\n        async function loadHistory(hours) {\n            try {\n                const response = await fetch(`${API_BASE}/history?hours=${hours}`);\n                if (response.ok) {\n                    const data = await response.json();\n                    updateChart(data);\n                    \n                    // Update active pill\n                    document.querySelectorAll('.nav-pills .nav-pill').forEach(pill => {\n                        pill.classList.remove('active');\n                    });\n                    event?.target?.classList.add('active');\n                }\n            } catch (error) {\n                console.error('Error loading history:', error);\n            }\n        }\n\n        // Update chart\n        function updateChart(data) {\n            if (tempChart && data) {\n                tempChart.data = data;\n                tempChart.update();\n            }\n        }\n\n        // Schedule functions\n        async function loadSchedule() {\n            try {\n                const response = await fetch(`${API_BASE}/schedule`);\n                if (response.ok) {\n                    const data = await response.json();\n                    scheduleRules = data.rules || [];\n                    document.getElementById('schedule-enabled').classList.toggle('active', data.enabled);\n                    renderScheduleRules();\n                }\n            } catch (error) {\n                console.error('Error loading schedule:', error);\n            }\n        }\n\n        function renderScheduleRules() {\n            const container = document.getElementById('schedule-list');\n            container.innerHTML = scheduleRules.map((rule, index) => `\n                <div class=\"schedule-item\">\n                    <div class=\"schedule-header\">\n                        <span class=\"schedule-title\">${rule.name}</span>\n                        <div class=\"schedule-toggle ${rule.enabled ? 'active' : ''}\" \n                             onclick=\"toggleRule(${index})\">\n                            <div class=\"schedule-toggle-thumb\"></div>\n                        </div>\n                    </div>\n                    <div class=\"schedule-days\">\n                        ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => `\n                            <div class=\"day-badge ${rule.days.includes(i) ? 'active' : ''}\">${day}</div>\n                        `).join('')}\n                    </div>\n                    <div class=\"schedule-time\">\n                        <i data-feather=\"clock\" style=\"width: 14px; height: 14px;\"></i>\n                        <span>${rule.startTime} - ${rule.endTime}</span>\n                        <span style=\"margin-left: auto;\">${rule.temperature}°C</span>\n                    </div>\n                </div>\n            `).join('');\n            \n            // Refresh icons\n            feather.replace();\n        }\n\n        function addScheduleRule() {\n            scheduleRules.push({\n                id: Date.now(),\n                name: `Rule ${scheduleRules.length + 1}`,\n                enabled: true,\n                days: [1, 2, 3, 4, 5],\n                startTime: \"08:00\",\n                endTime: \"22:00\",\n                mode: \"auto\",\n                temperature: 20\n            });\n            renderScheduleRules();\n            saveSchedule();\n        }\n\n        function toggleRule(index) {\n            scheduleRules[index].enabled = !scheduleRules[index].enabled;\n            renderScheduleRules();\n            saveSchedule();\n        }\n\n        function toggleSchedule() {\n            const toggle = document.getElementById('schedule-enabled');\n            toggle.classList.toggle('active');\n            saveSchedule();\n        }\n\n        async function saveSchedule() {\n            try {\n                const response = await fetch(`${API_BASE}/schedule`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({\n                        enabled: document.getElementById('schedule-enabled').classList.contains('active'),\n                        rules: scheduleRules\n                    })\n                });\n                \n                if (response.ok) {\n                    showToast('Schedule saved', 'success');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n            }\n        }\n\n        // Toggle theme\n        function toggleTheme() {\n            isDarkMode = !isDarkMode;\n            const theme = isDarkMode ? 'dark' : 'light';\n            document.documentElement.setAttribute('data-theme', theme);\n            localStorage.setItem('theme', theme);\n            event.target.closest('.schedule-toggle').classList.toggle('active');\n        }\n\n        // Show toast notification\n        function showToast(message, type = 'info') {\n            const container = document.getElementById('toast-container');\n            const toast = document.createElement('div');\n            toast.className = `toast ${type}`;\n            \n            const iconMap = {\n                'success': 'check-circle',\n                'error': 'x-circle',\n                'info': 'info'\n            };\n            \n            toast.innerHTML = `\n                <div class=\"toast-content\">\n                    <i data-feather=\"${iconMap[type]}\" class=\"toast-icon\"></i>\n                    <span class=\"toast-message\">${message}</span>\n                </div>\n            `;\n            \n            container.appendChild(toast);\n            feather.replace();\n            \n            setTimeout(() => {\n                toast.classList.add('show');\n            }, 10);\n            \n            setTimeout(() => {\n                toast.classList.remove('show');\n                setTimeout(() => {\n                    container.removeChild(toast);\n                }, 300);\n            }, 3000);\n        }\n\n        // Initialize touch gestures\n        function initTouchGestures() {\n            let touchStartX = 0;\n            let touchEndX = 0;\n            \n            document.addEventListener('touchstart', e => {\n                touchStartX = e.changedTouches[0].screenX;\n            });\n            \n            document.addEventListener('touchend', e => {\n                touchEndX = e.changedTouches[0].screenX;\n                handleSwipe();\n            });\n            \n            function handleSwipe() {\n                const swipeThreshold = 100;\n                const diff = touchStartX - touchEndX;\n                \n                if (Math.abs(diff) > swipeThreshold) {\n                    // Swipe left/right to change tabs\n                    const tabs = ['dashboard', 'control', 'analytics', 'schedule', 'settings'];\n                    const currentTab = document.querySelector('.tab-content.active').id.replace('-tab', '');\n                    const currentIndex = tabs.indexOf(currentTab);\n                    \n                    if (diff > 0 && currentIndex < tabs.length - 1) {\n                        // Swipe left - next tab\n                        switchTab(tabs[currentIndex + 1]);\n                    } else if (diff < 0 && currentIndex > 0) {\n                        // Swipe right - previous tab\n                        switchTab(tabs[currentIndex - 1]);\n                    }\n                }\n            }\n        }\n    </script>\n</body>\n\n</html>",
+        "output": "str",
+        "x": 450,
+        "y": 480,
+        "wires": [
+            [
+                "51b02539f2d1e729"
+            ]
+        ]
+    },
+    {
+        "id": "51b02539f2d1e729",
+        "type": "http response",
+        "z": "2c08707be53937dd",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 690,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "f294c05c5cbc4d14",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "API Status",
+        "url": "/api/heatpump/status",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 540,
+        "wires": [
+            [
+                "810ec0cdc161c1c7"
+            ]
+        ]
+    },
+    {
+        "id": "810ec0cdc161c1c7",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Get System Status",
+        "func": "// Get last status from flow context\nlet status = flow.get('lastSystemStatus') || {\n    ac_on: 0,\n    ac_on_text: \"OFF\",\n    ac_mode: 0,\n    ac_mode_text: \"Unknown\",\n    water_in_c: null,\n    water_out_c: null,\n    water_set_c: null,\n    indoor_temp_c: null,\n    fan_speed_text: \"Unknown\",\n    filter_alarm_text: \"Unknown\",\n    error_code_indoor: 0,\n    error_code_outdoor: 0,\n    error_code_indoor_text: \"No Error\",\n    error_code_outdoor_text: \"No Error\",\n    timestamp: new Date()\n};\n\nmsg.payload = status;\nmsg.headers = {\n    \"Content-Type\": \"application/json\",\n    \"Access-Control-Allow-Origin\": \"*\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 540,
+        "wires": [
+            [
+                "5bea4afd3d14382c"
+            ]
+        ]
+    },
+    {
+        "id": "5bea4afd3d14382c",
+        "type": "http response",
+        "z": "2c08707be53937dd",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1130,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "17160a0c0b89021d",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "API Logs",
+        "url": "/api/heatpump/logs",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 600,
+        "wires": [
+            [
+                "97de92bfe4e5c80f"
+            ]
+        ]
+    },
+    {
+        "id": "97de92bfe4e5c80f",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Get Modbus Logs",
+        "func": "// Get logs from flow context\nlet logs = flow.get('modbusLogs') || [];\n\nmsg.payload = {\n    logs: logs.slice(0, 20),  // Return last 20 logs\n    totalCount: logs.length\n};\n\nmsg.headers = {\n    \"Content-Type\": \"application/json\",\n    \"Access-Control-Allow-Origin\": \"*\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 600,
+        "wires": [
+            [
+                "5bea4afd3d14382c"
+            ]
+        ]
+    },
+    {
+        "id": "c1cc7a2280f724aa",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "API History",
+        "url": "/api/heatpump/history",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 780,
+        "wires": [
+            [
+                "c96fe4f99aa8d124"
+            ]
+        ]
+    },
+    {
+        "id": "c96fe4f99aa8d124",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Prepare InfluxDB Query",
+        "func": "// Get query parameters\nconst hours = msg.req.query.hours || 24;\nconst measurement = msg.req.query.measurement || 'temperatures';\n\n// Create InfluxDB query\nmsg.query = `\n    SELECT mean(\"water_in\") as water_in, \n           mean(\"water_out\") as water_out, \n           mean(\"water_set\") as water_set,\n           mean(\"indoor_temp\") as indoor_temp\n    FROM ${measurement} \n    WHERE time > now() - ${hours}h \n    GROUP BY time(5m) \n    ORDER BY time DESC\n    LIMIT 500\n`;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 780,
+        "wires": [
+            [
+                "d860d391a0b67183"
+            ]
+        ]
+    },
+    {
+        "id": "d860d391a0b67183",
+        "type": "influxdb in",
+        "z": "2c08707be53937dd",
+        "influxdb": "95d0dcb68fe7e576",
+        "name": "Query History",
+        "query": "",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "",
+        "x": 700,
+        "y": 780,
+        "wires": [
+            [
+                "ec20d8d4df10bfec"
+            ]
+        ]
+    },
+    {
+        "id": "ec20d8d4df10bfec",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Format History Data",
+        "func": "// Format InfluxDB data for charts\nlet chartData = {\n    labels: [],\n    datasets: [\n        {\n            label: 'Water In',\n            data: [],\n            borderColor: '#3b82f6',\n            backgroundColor: 'rgba(59, 130, 246, 0.1)'\n        },\n        {\n            label: 'Water Out',\n            data: [],\n            borderColor: '#ef4444',\n            backgroundColor: 'rgba(239, 68, 68, 0.1)'\n        },\n        {\n            label: 'Setpoint',\n            data: [],\n            borderColor: '#10b981',\n            backgroundColor: 'rgba(16, 185, 129, 0.1)'\n        },\n        {\n            label: 'Indoor',\n            data: [],\n            borderColor: '#f59e0b',\n            backgroundColor: 'rgba(245, 158, 11, 0.1)'\n        }\n    ]\n};\n\nif (msg.payload && Array.isArray(msg.payload)) {\n    msg.payload.forEach(point => {\n        chartData.labels.push(new Date(point.time).toLocaleString());\n        chartData.datasets[0].data.push(point.water_in);\n        chartData.datasets[1].data.push(point.water_out);\n        chartData.datasets[2].data.push(point.water_set);\n        chartData.datasets[3].data.push(point.indoor_temp);\n    });\n}\n\nmsg.payload = chartData;\nmsg.headers = {\n    \"Content-Type\": \"application/json\",\n    \"Access-Control-Allow-Origin\": \"*\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 780,
+        "wires": [
+            [
+                "5bea4afd3d14382c"
+            ]
+        ]
+    },
+    {
+        "id": "493e32058975c1f2",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "API Schedule GET",
+        "url": "/api/heatpump/schedule",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 660,
+        "wires": [
+            [
+                "fc89233b0f2edde2"
+            ]
+        ]
+    },
+    {
+        "id": "fc89233b0f2edde2",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Get Schedule",
+        "func": "// Get schedule from flow context\nlet schedule = flow.get('heatpumpSchedule') || {\n    enabled: false,\n    rules: [\n        {\n            id: 1,\n            name: \"Morning Warm\",\n            enabled: true,\n            days: [1, 2, 3, 4, 5], // Mon-Fri\n            startTime: \"06:00\",\n            endTime: \"08:00\",\n            mode: \"heat\",\n            temperature: 22\n        },\n        {\n            id: 2,\n            name: \"Night Cool\",\n            enabled: true,\n            days: [0, 1, 2, 3, 4, 5, 6], // All days\n            startTime: \"22:00\",\n            endTime: \"06:00\",\n            mode: \"cool\",\n            temperature: 24\n        }\n    ]\n};\n\nmsg.payload = schedule;\nmsg.headers = {\n    \"Content-Type\": \"application/json\",\n    \"Access-Control-Allow-Origin\": \"*\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 660,
+        "wires": [
+            [
+                "5bea4afd3d14382c"
+            ]
+        ]
+    },
+    {
+        "id": "2694e3f60bd71383",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "API Schedule POST",
+        "url": "/api/heatpump/schedule",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 720,
+        "wires": [
+            [
+                "a6fc08973656a77a"
+            ]
+        ]
+    },
+    {
+        "id": "a6fc08973656a77a",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Save Schedule",
+        "func": "// Save schedule to flow context\nif (msg.payload && msg.payload.rules) {\n    flow.set('heatpumpSchedule', msg.payload);\n    \n    msg.payload = {\n        success: true,\n        message: \"Schedule saved successfully\"\n    };\n} else {\n    msg.payload = {\n        success: false,\n        message: \"Invalid schedule data\"\n    };\n    msg.statusCode = 400;\n}\n\nmsg.headers = {\n    \"Content-Type\": \"application/json\",\n    \"Access-Control-Allow-Origin\": \"*\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 720,
+        "wires": [
+            [
+                "5bea4afd3d14382c"
+            ]
+        ]
+    },
+    {
+        "id": "f65d7065806b98e5",
+        "type": "inject",
+        "z": "2c08707be53937dd",
+        "name": "Check Schedule (1min)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 920,
+        "wires": [
+            [
+                "bd7ca2ec21680d99"
+            ]
+        ]
+    },
+    {
+        "id": "bd7ca2ec21680d99",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Process Schedule Rules",
+        "func": "// Get schedule from flow context\nlet schedule = flow.get('heatpumpSchedule') || {enabled: false, rules: []};\n\nif (!schedule.enabled) {\n    return null;\n}\n\n// Get current time and day\nconst now = new Date();\nconst currentDay = now.getDay();\nconst currentTime = now.getHours() * 60 + now.getMinutes();\n\n// Check each rule\nfor (let rule of schedule.rules) {\n    if (!rule.enabled) continue;\n    \n    // Check if today is in the rule days\n    if (!rule.days.includes(currentDay)) continue;\n    \n    // Parse times\n    const [startHour, startMin] = rule.startTime.split(':').map(Number);\n    const [endHour, endMin] = rule.endTime.split(':').map(Number);\n    const startMinutes = startHour * 60 + startMin;\n    let endMinutes = endHour * 60 + endMin;\n    \n    // Handle overnight schedules\n    if (endMinutes < startMinutes) {\n        if (currentTime >= startMinutes || currentTime < endMinutes) {\n            // Apply this rule\n            return applyRule(rule);\n        }\n    } else {\n        if (currentTime >= startMinutes && currentTime < endMinutes) {\n            // Apply this rule\n            return applyRule(rule);\n        }\n    }\n}\n\n// No active rule, turn off if manual control is disabled\nif (!global.get('manual_control')) {\n    return {\n        payload: {\n            action: 'stop'\n        }\n    };\n}\n\nreturn null;\n\nfunction applyRule(rule) {\n    const modeMap = {\n        'cool': 1,\n        'heat': 4,\n        'auto': 0\n    };\n    \n    return {\n        payload: {\n            action: 'start',\n            mode: modeMap[rule.mode] || 0,\n            temperature: rule.temperature,\n            scheduledRule: rule.name\n        }\n    };\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 920,
+        "wires": [
+            [
+                "724705c60fb20240"
+            ]
+        ]
+    },
+    {
+        "id": "724705c60fb20240",
+        "type": "switch",
+        "z": "2c08707be53937dd",
+        "name": "Check Action",
+        "property": "payload.action",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "start",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "stop",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 760,
+        "y": 920,
+        "wires": [
+            [
+                "a65e9d833a48a660"
+            ],
+            [
+                "3dcc4a25daac0f0c"
+            ]
+        ]
+    },
+    {
+        "id": "a65e9d833a48a660",
+        "type": "link out",
+        "z": "2c08707be53937dd",
+        "name": "Schedule Start",
+        "mode": "link",
+        "links": [
+            "db9962dcd07808fe"
+        ],
+        "x": 905,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "3dcc4a25daac0f0c",
+        "type": "link out",
+        "z": "2c08707be53937dd",
+        "name": "Schedule Stop",
+        "mode": "link",
+        "links": [
+            "db9962dcd07808fe"
+        ],
+        "x": 905,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "3f2b94c75173b7fe",
+        "type": "inject",
+        "z": "2c08707be53937dd",
+        "name": "Citire la 30s",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "scheduled",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 1020,
+        "wires": [
+            [
+                "4df4588006b72a94",
+                "165183294e919d9e"
+            ]
+        ]
+    },
+    {
+        "id": "4df4588006b72a94",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "GetRegisters51to78",
+        "func": "// #51..#78 => 28 registre\nmsg.payload = {\n    fc: 3,\n    unitid: 1,\n    address: 50,    // 0-based pentru #51\n    quantity: 28\n};\n\nmsg.topic = \"read51to78\";\nmsg.requestTime = new Date();\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 1020,
+        "wires": [
+            [
+                "021c8208ce3820ba"
+            ]
+        ]
+    },
+    {
+        "id": "165183294e919d9e",
+        "type": "delay",
+        "z": "2c08707be53937dd",
+        "name": "Delay 10s",
+        "pauseType": "delay",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 280,
+        "y": 1140,
+        "wires": [
+            [
+                "4891360e6be17b1d"
+            ]
+        ]
+    },
+    {
+        "id": "4891360e6be17b1d",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "GetRegisters2to4",
+        "func": "// #2..#4 => 3 registre\nmsg.payload = {\n    fc: 3,\n    unitid: 1,\n    address: 1,  // 0-based pentru #2\n    quantity: 3\n};\nmsg.topic = \"read2to4\";\nmsg.requestTime = new Date();\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1140,
+        "wires": [
+            [
+                "021c8208ce3820ba"
+            ]
+        ]
+    },
+    {
+        "id": "021c8208ce3820ba",
+        "type": "modbus-flex-getter",
+        "z": "2c08707be53937dd",
+        "name": "DVM-S ModbusRTU",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "server": "145bc96e15c34554",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 780,
+        "y": 1080,
+        "wires": [
+            [
+                "b9b7c2ce04d3b67d",
+                "a8455196155d69a1"
+            ],
+            [
+                "e0a052e93b12a44f"
+            ]
+        ]
+    },
+    {
+        "id": "a8455196155d69a1",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Logger Inteligent Samsung",
+        "func": "// Logging inteligent pentru comunicații Modbus - Samsung DVM\nlet logs = flow.get('modbusLogs') || [];\n\n// Funcție pentru interpretare valori conform documentației Samsung\nfunction interpretValues(topic, values) {\n    let interpretation = [];\n    \n    if (topic === \"read2to4\" && values.length >= 3) {\n        interpretation.push({\n            register: \"R2\",\n            name: \"Outdoor Error\",\n            raw: values[0],\n            value: values[0] === 0 ? \"No Error\" : `Error ${values[0]}`,\n            important: values[0] !== 0\n        });\n        interpretation.push({\n            register: \"R3\",\n            name: \"Defrost\",\n            raw: values[1],\n            value: (values[1] === 0 || values[1] === 0xFF) ? \"Off\" : \"On\"\n        });\n        interpretation.push({\n            register: \"R4\",\n            name: \"Buzzer\",\n            raw: values[2],\n            value: values[2] === 0 ? \"On\" : \"Off\"\n        });\n    } else if (topic === \"read51to78\" && values.length >= 28) {\n        // Registrii importanți conform mapării corecte\n        interpretation.push({\n            register: \"R53\",\n            name: \"System\",\n            raw: values[2],\n            value: values[2] === 0 ? \"OFF\" : values[2] === 1 ? \"ON\" : \"Unknown\",\n            important: true\n        });\n        interpretation.push({\n            register: \"R54\",\n            name: \"Mode\",\n            raw: values[3],\n            value: values[3] === 0 ? \"Auto\" : \n                   values[3] === 1 ? \"Cool\" : \n                   values[3] === 2 ? \"Dry\" :\n                   values[3] === 3 ? \"Fan\" :\n                   values[3] === 4 ? \"Heat\" : `Unknown(${values[3]})`,\n            important: true\n        });\n        interpretation.push({\n            register: \"R60\",\n            name: \"Indoor Temp\",\n            raw: values[9],\n            value: `${(values[9] / 10.0).toFixed(1)}°C`\n        });\n        interpretation.push({\n            register: \"R64\",\n            name: \"Indoor Error\",\n            raw: values[13],\n            value: values[13] === 0 ? \"OK\" : `Error ${values[13]}`,\n            important: values[13] !== 0\n        });\n        interpretation.push({\n            register: \"R66\",\n            name: \"Water In\",\n            raw: values[15],\n            value: `${(values[15] / 10.0).toFixed(1)}°C`,\n            important: true\n        });\n        interpretation.push({\n            register: \"R67\",\n            name: \"Water Out\",\n            raw: values[16],\n            value: `${(values[16] / 10.0).toFixed(1)}°C`,\n            important: true\n        });\n        interpretation.push({\n            register: \"R69\",\n            name: \"Water Set\",\n            raw: values[18],\n            value: `${(values[18] / 10.0).toFixed(1)}°C`,\n            important: true\n        });\n        interpretation.push({\n            register: \"R77\",\n            name: \"Quiet Mode\",\n            raw: values[26],\n            value: values[26] === 0 ? \"Off\" : values[26] === 1 ? \"On\" : \"Ignored\"\n        });\n        interpretation.push({\n            register: \"R78\",\n            name: \"Away\",\n            raw: values[27],\n            value: values[27] === 0 ? \"Off\" : values[27] === 1 ? \"On\" : \"Ignored\"\n        });\n        \n        // Calculăm diferența de temperatură\n        let waterIn = values[15] / 10.0;\n        let waterOut = values[16] / 10.0;\n        let tempDiff = Math.abs(waterOut - waterIn);\n        interpretation.push({\n            register: \"CALC\",\n            name: \"Temp Diff\",\n            raw: \"-\",\n            value: `${tempDiff.toFixed(1)}°C`,\n            important: true,\n            calculated: true\n        });\n    }\n    \n    return interpretation;\n}\n\n// Creăm log entry\nlet logEntry = {\n    timestamp: new Date(),\n    topic: msg.topic,\n    request: {\n        address: msg.modbusRequest.address,\n        quantity: msg.modbusRequest.quantity,\n        range: `R${msg.modbusRequest.address + 1}-R${msg.modbusRequest.address + msg.modbusRequest.quantity}`\n    },\n    response: {\n        raw: msg.payload,\n        length: msg.payload.length,\n        interpretation: interpretValues(msg.topic, msg.payload)\n    },\n    success: true,\n    responseTime: msg.requestTime ? Date.now() - new Date(msg.requestTime).getTime() : null\n};\n\n// Detectăm anomalii\nlet anomalies = [];\nif (msg.topic === \"read51to78\" && msg.payload.length >= 28) {\n    // Verificăm anomalii în temperaturi\n    let waterIn = msg.payload[15] / 10.0;\n    let waterOut = msg.payload[16] / 10.0;\n    let mode = msg.payload[3];\n    \n    if (mode === 1 && waterOut > waterIn) { // Cool mode\n        anomalies.push(\"⚠️ În mod Cool, Water Out > Water In!\");\n    }\n    if (mode === 4 && waterOut < waterIn) { // Heat mode\n        anomalies.push(\"⚠️ În mod Heat, Water Out < Water In!\");\n    }\n    if (Math.abs(waterOut - waterIn) < 1 && msg.payload[2] === 1) { // System ON\n        anomalies.push(\"⚠️ Diferență temperatură < 1°C cu sistem pornit!\");\n    }\n}\n\nif (anomalies.length > 0) {\n    logEntry.anomalies = anomalies;\n}\n\n// Adăugăm la început\nlogs.unshift(logEntry);\n\n// Păstrăm doar ultimele 50\nif (logs.length > 50) {\n    logs = logs.slice(0, 50);\n}\n\nflow.set('modbusLogs', logs);\n\n// Return for next node\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 1100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b9b7c2ce04d3b67d",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Decodare & Salvare InfluxDB",
+        "func": "// Decodare CORECTATĂ conform documentației Samsung Modbus\n\nlet regs = msg.payload; \nlet topic = msg.topic;\n\n// Debug\nnode.warn(`${topic}: Am primit ${regs.length} registri`);\n\n// Structuri de ieșire\nlet output1 = null;  // Decoded data\nlet output2 = null;  // InfluxDB data\n\nswitch (topic) {\n    case \"read2to4\":\n        if (regs.length >= 3) {\n            output1 = {\n                topic: \"read2to4\",\n                payload: {\n                    error_code_outdoor: regs[0],\n                    error_code_outdoor_text: regs[0] === 0 ? \"No Error\" : `Error Code ${regs[0]}`,\n                    defrost_operation: regs[1], \n                    defrost_operation_text: (regs[1] === 0 || regs[1] === 0xFF) ? \"Defrost Off\" : \"Defrost On\",\n                    buzzer: regs[2],\n                    buzzer_text: regs[2] === 0 ? \"Buzzer On\" : \"Buzzer Off\",\n                    timestamp: new Date()\n                },\n                _msgid: msg._msgid\n            };\n            \n            // Update outdoor error in flow context\n            let status = flow.get('lastSystemStatus') || {};\n            status.error_code_outdoor = regs[0];\n            status.error_code_outdoor_text = output1.payload.error_code_outdoor_text;\n            flow.set('lastSystemStatus', status);\n        }\n        break;\n\n    case \"read51to78\":\n        if (regs.length >= 28) {\n            let decodedValues = {\n                communication_status: regs[0],\n                unit_type: regs[1],\n                ac_on: regs[2],\n                ac_mode: regs[3],\n                fan_speed: regs[4],\n                vertical_airflow: regs[5],\n                filter_alarm: regs[6],\n                target_indoor_temp_raw: regs[8],\n                indoor_temp_raw: regs[9],\n                discharge_temp_raw: regs[10],\n                cooling_discharge_set_raw: regs[11],\n                heating_discharge_set_raw: regs[12],\n                error_code_indoor: regs[13],\n                remote_restriction: regs[14],\n                water_in_raw: regs[15],\n                water_out_raw: regs[16],\n                mcc_water_out_raw: regs[17],\n                water_set_raw: regs[18],\n                ventilation_on: regs[19],\n                ventilation_mode: regs[20],\n                ventilation_fan_speed: regs[21],\n                hot_water_on: regs[22],\n                hot_water_mode: regs[23],\n                hot_water_set_raw: regs[24],\n                hot_water_temp_raw: regs[25],\n                quiet_control: regs[26],\n                away_function: regs[27]\n            };\n            \n            // Calculăm temperaturile (toate sunt Celsius x 10)\n            let water_in_c = decodedValues.water_in_raw / 10.0;\n            let water_out_c = decodedValues.water_out_raw / 10.0;\n            let water_set_c = decodedValues.water_set_raw / 10.0;\n            let indoor_temp_c = decodedValues.indoor_temp_raw / 10.0;\n            let target_indoor_temp_c = decodedValues.target_indoor_temp_raw / 10.0;\n            \n            output1 = {\n                topic: \"read51to78\",\n                payload: {\n                    // Status principal\n                    ac_on: decodedValues.ac_on,\n                    ac_on_text: decodedValues.ac_on === 0 ? \"OFF\" : decodedValues.ac_on === 1 ? \"ON\" : \"Unknown\",\n                    \n                    // Mode decodare conform doc\n                    ac_mode: decodedValues.ac_mode,\n                    ac_mode_text: decodedValues.ac_mode === 0 ? \"Auto\" : \n                                  decodedValues.ac_mode === 1 ? \"Cool\" : \n                                  decodedValues.ac_mode === 2 ? \"Dry\" :\n                                  decodedValues.ac_mode === 3 ? \"Fan\" :\n                                  decodedValues.ac_mode === 4 ? \"Heat\" : \n                                  `Unknown(${decodedValues.ac_mode})`,\n                    \n                    // Fan speed\n                    fan_speed: decodedValues.fan_speed,\n                    fan_speed_text: decodedValues.fan_speed === 0 ? \"Auto\" :\n                                    decodedValues.fan_speed === 1 ? \"Low\" :\n                                    decodedValues.fan_speed === 2 ? \"Middle\" :\n                                    decodedValues.fan_speed === 3 ? \"High\" : \"Unknown\",\n                    \n                    // Erori\n                    error_code_indoor: decodedValues.error_code_indoor,\n                    error_code_indoor_text: decodedValues.error_code_indoor === 0 ? \"No Error\" : `Error ${decodedValues.error_code_indoor}`,\n                    \n                    // TEMPERATURI\n                    water_in_c: water_in_c,\n                    water_out_c: water_out_c,\n                    water_set_c: water_set_c,\n                    indoor_temp_c: indoor_temp_c,\n                    target_indoor_temp_c: target_indoor_temp_c,\n                    \n                    // Control auxiliar\n                    quiet_control: decodedValues.quiet_control,\n                    quiet_control_text: decodedValues.quiet_control === 0 ? \"Off\" : \n                                       decodedValues.quiet_control === 1 ? \"On\" : \"Ignored\",\n                    away_function: decodedValues.away_function,\n                    away_function_text: decodedValues.away_function === 0 ? \"Off\" : \n                                       decodedValues.away_function === 1 ? \"On\" : \"Ignored\",\n                    \n                    // Filter status\n                    filter_alarm: decodedValues.filter_alarm,\n                    filter_alarm_text: decodedValues.filter_alarm === 0 ? \"Filter OK\" : \"Filter Needs Cleaning\",\n                    \n                    // Metadata\n                    timestamp: new Date()\n                },\n                _msgid: msg._msgid\n            };\n            \n            // Salvăm în flow pentru utilizare ulterioară\n            flow.set('lastSystemStatus', output1.payload);\n            \n            // Check if values changed for InfluxDB\n            let lastInfluxData = flow.get('lastInfluxData') || {};\n            let hasChanged = (\n                lastInfluxData.water_in_c !== water_in_c ||\n                lastInfluxData.water_out_c !== water_out_c ||\n                lastInfluxData.water_set_c !== water_set_c ||\n                lastInfluxData.indoor_temp_c !== indoor_temp_c ||\n                lastInfluxData.ac_on !== decodedValues.ac_on ||\n                lastInfluxData.ac_mode !== decodedValues.ac_mode\n            );\n            \n            if (hasChanged) {\n                // Prepare InfluxDB data\n                output2 = {\n                    measurement: \"heatpump\",\n                    fields: {\n                        water_in: water_in_c,\n                        water_out: water_out_c,\n                        water_set: water_set_c,\n                        indoor_temp: indoor_temp_c,\n                        temp_diff: Math.abs(water_out_c - water_in_c),\n                        system_on: decodedValues.ac_on,\n                        mode: decodedValues.ac_mode,\n                        fan_speed: decodedValues.fan_speed,\n                        error_indoor: decodedValues.error_code_indoor,\n                        error_outdoor: flow.get('lastSystemStatus').error_code_outdoor || 0\n                    },\n                    tags: {\n                        location: \"main\",\n                        unit: \"samsung_dvm\",\n                        mode_text: output1.payload.ac_mode_text\n                    },\n                    timestamp: new Date()\n                };\n                \n                // Update last saved data\n                flow.set('lastInfluxData', {\n                    water_in_c: water_in_c,\n                    water_out_c: water_out_c,\n                    water_set_c: water_set_c,\n                    indoor_temp_c: indoor_temp_c,\n                    ac_on: decodedValues.ac_on,\n                    ac_mode: decodedValues.ac_mode,\n                    timestamp: new Date()\n                });\n                \n                node.warn(\"Data changed, saving to InfluxDB\");\n            }\n            \n            // Debug\n            node.warn(`System ON: ${decodedValues.ac_on}, Mode: ${output1.payload.ac_mode_text}`);\n            node.warn(`Water IN: ${water_in_c}°C, OUT: ${water_out_c}°C, SET: ${water_set_c}°C`);\n        }\n        break;\n\n    default:\n        node.warn(\"Topic necunoscut: \" + topic);\n        break;\n}\n\n// Returnăm array-ul de mesaje pentru cele două ieșiri\nreturn [output1, output2];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 1020,
+        "wires": [
+            [],
+            [
+                "e3c26d812690bbe9"
+            ]
+        ]
+    },
+    {
+        "id": "e3c26d812690bbe9",
+        "type": "influxdb out",
+        "z": "2c08707be53937dd",
+        "influxdb": "d8dacbe6.2fdca8",
+        "name": "Save to InfluxDB",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "home-stack",
+        "bucket": "heatpump",
+        "x": 1390,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "63e24d08e1ee5ac2",
+        "type": "http in",
+        "z": "2c08707be53937dd",
+        "name": "API Control",
+        "url": "/api/heatpump/control",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 180,
+        "wires": [
+            [
+                "29d6304d3203405d"
+            ]
+        ]
+    },
+    {
+        "id": "29d6304d3203405d",
+        "type": "link out",
+        "z": "2c08707be53937dd",
+        "name": "To Control Process",
+        "mode": "link",
+        "links": [
+            "db9962dcd07808fe"
+        ],
+        "x": 295,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "db9962dcd07808fe",
+        "type": "link in",
+        "z": "2c08707be53937dd",
+        "name": "Control Input",
+        "links": [
+            "29d6304d3203405d",
+            "a65e9d833a48a660",
+            "3dcc4a25daac0f0c"
+        ],
+        "x": 395,
+        "y": 180,
+        "wires": [
+            [
+                "bbb94421776437ac"
+            ]
+        ]
+    },
+    {
+        "id": "bbb94421776437ac",
+        "type": "function",
+        "z": "2c08707be53937dd",
+        "name": "Process Control Command",
+        "func": "// Process control commands\nconst command = msg.payload;\n\n// Outputs: [R53-OnOff, R54-Mode, R69-Temp, Refresh, Response]\nlet outputs = [null, null, null, null, null];\n\nif (command.action === 'start') {\n    // Set mode (R54)\n    outputs[1] = {\n        payload: command.mode || 1,\n        topic: 'set_mode'\n    };\n    \n    // Set temperature (R69)\n    outputs[2] = {\n        payload: Math.round((command.temperature || 20) * 10),\n        topic: 'set_temperature'\n    };\n    \n    // Turn on (R53) after delay\n    setTimeout(() => {\n        node.send([{\n            payload: 1,\n            topic: 'turn_on'\n        }, null, null, null, null]);\n    }, 500);\n    \n    // Refresh after 3 seconds\n    setTimeout(() => {\n        node.send([null, null, null, {payload: true}, null]);\n    }, 3000);\n    \n    msg.payload = {\n        success: true, \n        message: command.scheduledRule ? \n            `System starting by schedule: ${command.scheduledRule}` : \n            'System starting...'\n    };\n    msg.statusCode = 200;\n    \n} else if (command.action === 'stop') {\n    // Turn off (R53)\n    outputs[0] = {\n        payload: 0,\n        topic: 'turn_off'\n    };\n    \n    // Refresh after 3 seconds\n    setTimeout(() => {\n        node.send([null, null, null, {payload: true}, null]);\n    }, 3000);\n    \n    msg.payload = {success: true, message: 'System stopping...'};\n    msg.statusCode = 200;\n    \n} else {\n    msg.payload = {success: false, message: 'Unknown action'};\n    msg.statusCode = 400;\n}\n\nmsg.headers = {\n    \"Content-Type\": \"application/json\",\n    \"Access-Control-Allow-Origin\": \"*\"\n};\n\noutputs[4] = msg;\n\nreturn outputs;",
+        "outputs": 5,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 180,
+        "wires": [
+            [
+                "bae3f13de137e02e"
+            ],
+            [
+                "89e53c39430d74a2"
+            ],
+            [
+                "36e5bc381c2b66e3"
+            ],
+            [
+                "a886ae24cf117583"
+            ],
+            [
+                "5bea4afd3d14382c"
+            ]
+        ]
+    },
+    {
+        "id": "bae3f13de137e02e",
+        "type": "modbus-write",
+        "z": "2c08707be53937dd",
+        "name": "Write R53 (On/Off)",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "52",
+        "quantity": "1",
+        "server": "145bc96e15c34554",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 910,
+        "y": 100,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "89e53c39430d74a2",
+        "type": "modbus-write",
+        "z": "2c08707be53937dd",
+        "name": "Write R54 (Mode)",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "53",
+        "quantity": "1",
+        "server": "145bc96e15c34554",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 910,
+        "y": 160,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "36e5bc381c2b66e3",
+        "type": "modbus-write",
+        "z": "2c08707be53937dd",
+        "name": "Write R69 (Water Set Temp)",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "68",
+        "quantity": "1",
+        "server": "145bc96e15c34554",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 940,
+        "y": 220,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a886ae24cf117583",
+        "type": "link out",
+        "z": "2c08707be53937dd",
+        "name": "Force Refresh Out",
+        "mode": "link",
+        "links": [
+            "ae7b1ef817bcd718"
+        ],
+        "x": 835,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "ae7b1ef817bcd718",
+        "type": "link in",
+        "z": "2c08707be53937dd",
+        "name": "Force Refresh In",
+        "links": [
+            "a886ae24cf117583"
+        ],
+        "x": 105,
+        "y": 1140,
+        "wires": [
+            [
+                "4df4588006b72a94",
+                "165183294e919d9e"
+            ]
+        ]
+    },
+    {
+        "id": "e0a052e93b12a44f",
+        "type": "debug",
+        "z": "2c08707be53937dd",
+        "name": "Modbus Errors",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1080,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "7e2f8c4d891dbc3a",
+        "type": "template",
+        "z": "2c08707be53937dd",
+        "d": true,
+        "name": "Enhanced HTML Interface",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"ro\">\n\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">\n    <title>Heat Pump Control System</title>\n\n    <!-- Chart.js for graphs -->\n    <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js\"></script>\n\n    <style>\n        :root {\n            --primary: #1e40af;\n            --primary-light: #3b82f6;\n            --primary-dark: #1e3a8a;\n            --success: #10b981;\n            --warning: #f59e0b;\n            --danger: #ef4444;\n            --background: #f8fafc;\n            --surface: #ffffff;\n            --text-primary: #1e293b;\n            --text-secondary: #64748b;\n            --border: #e2e8f0;\n            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);\n            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);\n            --radius: 0.75rem;\n        }\n\n        [data-theme=\"dark\"] {\n            --background: #0f172a;\n            --surface: #1e293b;\n            --text-primary: #f1f5f9;\n            --text-secondary: #94a3b8;\n            --border: #334155;\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n            background: var(--background);\n            color: var(--text-primary);\n            line-height: 1.5;\n        }\n\n        .container {\n            max-width: 1400px;\n            margin: 0 auto;\n            padding: 1rem;\n        }\n\n        /* Header */\n        .header {\n            background: var(--surface);\n            border-bottom: 1px solid var(--border);\n            padding: 1rem 0;\n            margin-bottom: 2rem;\n            box-shadow: var(--shadow);\n            position: sticky;\n            top: 0;\n            z-index: 100;\n        }\n\n        .header-content {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            flex-wrap: wrap;\n            gap: 1rem;\n        }\n\n        .title {\n            font-size: 1.5rem;\n            font-weight: 700;\n            display: flex;\n            align-items: center;\n            gap: 0.5rem;\n        }\n\n        .status-bar {\n            display: flex;\n            align-items: center;\n            gap: 1rem;\n        }\n\n        .status-indicator {\n            display: flex;\n            align-items: center;\n            gap: 0.5rem;\n            padding: 0.5rem 1rem;\n            background: var(--background);\n            border-radius: 999px;\n            font-size: 0.875rem;\n        }\n\n        .status-dot {\n            width: 10px;\n            height: 10px;\n            border-radius: 50%;\n            background: var(--danger);\n        }\n\n        .status-dot.active {\n            background: var(--success);\n            animation: pulse 2s infinite;\n        }\n\n        @keyframes pulse {\n\n            0%,\n            100% {\n                opacity: 1;\n            }\n\n            50% {\n                opacity: 0.5;\n            }\n        }\n\n        /* Tabs */\n        .tabs {\n            display: flex;\n            gap: 0.5rem;\n            margin-bottom: 2rem;\n            border-bottom: 2px solid var(--border);\n            overflow-x: auto;\n        }\n\n        .tab {\n            padding: 0.75rem 1.5rem;\n            background: none;\n            border: none;\n            cursor: pointer;\n            font-weight: 500;\n            color: var(--text-secondary);\n            border-bottom: 3px solid transparent;\n            transition: all 0.2s;\n            white-space: nowrap;\n        }\n\n        .tab:hover {\n            color: var(--text-primary);\n        }\n\n        .tab.active {\n            color: var(--primary);\n            border-bottom-color: var(--primary);\n        }\n\n        .tab-content {\n            display: none;\n        }\n\n        .tab-content.active {\n            display: block;\n        }\n\n        /* Cards */\n        .card {\n            background: var(--surface);\n            border-radius: var(--radius);\n            padding: 1.5rem;\n            margin-bottom: 1.5rem;\n            box-shadow: var(--shadow);\n        }\n\n        .card-title {\n            font-size: 1.125rem;\n            font-weight: 600;\n            margin-bottom: 1rem;\n            display: flex;\n            align-items: center;\n            gap: 0.5rem;\n        }\n\n        /* Temperature Cards */\n        .temp-grid {\n            display: grid;\n            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n            gap: 1rem;\n            margin-bottom: 2rem;\n        }\n\n        .temp-card {\n            background: linear-gradient(135deg, var(--primary-light), var(--primary));\n            color: white;\n            padding: 2rem;\n            border-radius: var(--radius);\n            text-align: center;\n            position: relative;\n            overflow: hidden;\n        }\n\n        .temp-card::before {\n            content: '';\n            position: absolute;\n            top: -50%;\n            right: -50%;\n            width: 200%;\n            height: 200%;\n            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);\n            animation: shimmer 3s infinite;\n        }\n\n        @keyframes shimmer {\n            0% {\n                transform: rotate(0deg);\n            }\n\n            100% {\n                transform: rotate(360deg);\n            }\n        }\n\n        .temp-value {\n            font-size: 2.5rem;\n            font-weight: 300;\n            line-height: 1;\n            position: relative;\n            z-index: 1;\n        }\n\n        .temp-label {\n            font-size: 0.875rem;\n            opacity: 0.9;\n            margin-top: 0.5rem;\n        }\n\n        /* Charts */\n        .chart-container {\n            position: relative;\n            height: 300px;\n            margin: 2rem 0;\n        }\n\n        /* Controls */\n        .controls {\n            display: grid;\n            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));\n            gap: 1rem;\n        }\n\n        .btn {\n            padding: 0.875rem 1.5rem;\n            border: none;\n            border-radius: var(--radius);\n            font-size: 1rem;\n            font-weight: 600;\n            cursor: pointer;\n            transition: all 0.2s;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            gap: 0.5rem;\n        }\n\n        .btn:hover {\n            transform: translateY(-2px);\n            box-shadow: var(--shadow-lg);\n        }\n\n        .btn:active {\n            transform: translateY(0);\n        }\n\n        .btn-primary {\n            background: var(--primary);\n            color: white;\n        }\n\n        .btn-success {\n            background: var(--success);\n            color: white;\n        }\n\n        .btn-danger {\n            background: var(--danger);\n            color: white;\n        }\n\n        .btn:disabled {\n            opacity: 0.5;\n            cursor: not-allowed;\n        }\n\n        /* Mode Selector */\n        .mode-selector {\n            display: grid;\n            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));\n            gap: 1rem;\n            margin-bottom: 2rem;\n        }\n\n        .mode-btn {\n            padding: 1.5rem 1rem;\n            background: var(--surface);\n            border: 2px solid var(--border);\n            border-radius: var(--radius);\n            cursor: pointer;\n            text-align: center;\n            transition: all 0.2s;\n        }\n\n        .mode-btn:hover {\n            border-color: var(--primary);\n            transform: translateY(-2px);\n        }\n\n        .mode-btn.active {\n            background: var(--primary);\n            color: white;\n            border-color: var(--primary);\n        }\n\n        .mode-btn.active.cool {\n            background: linear-gradient(135deg, #06b6d4, #0891b2);\n            border-color: #06b6d4;\n        }\n\n        .mode-btn.active.heat {\n            background: linear-gradient(135deg, #f97316, #ea580c);\n            border-color: #f97316;\n        }\n\n        .mode-icon {\n            font-size: 2rem;\n            margin-bottom: 0.5rem;\n        }\n\n        .mode-name {\n            font-weight: 600;\n        }\n\n        /* Temperature Slider */\n        .slider-container {\n            margin: 2rem 0;\n        }\n\n        .slider-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            margin-bottom: 1rem;\n        }\n\n        .slider {\n            width: 100%;\n            height: 8px;\n            border-radius: 4px;\n            background: var(--border);\n            outline: none;\n            -webkit-appearance: none;\n        }\n\n        .slider::-webkit-slider-thumb {\n            -webkit-appearance: none;\n            width: 24px;\n            height: 24px;\n            border-radius: 50%;\n            background: var(--primary);\n            cursor: pointer;\n            box-shadow: var(--shadow);\n        }\n\n        .slider::-moz-range-thumb {\n            width: 24px;\n            height: 24px;\n            border-radius: 50%;\n            background: var(--primary);\n            cursor: pointer;\n            border: none;\n        }\n\n        /* Info Grid */\n        .info-grid {\n            display: grid;\n            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n            gap: 1rem;\n        }\n\n        .info-item {\n            display: flex;\n            justify-content: space-between;\n            padding: 1rem;\n            background: var(--background);\n            border-radius: var(--radius);\n        }\n\n        .info-label {\n            color: var(--text-secondary);\n        }\n\n        .info-value {\n            font-weight: 600;\n        }\n\n        /* Logs Panel */\n        .logs-container {\n            max-height: 500px;\n            overflow-y: auto;\n            border: 1px solid var(--border);\n            border-radius: var(--radius);\n            background: var(--background);\n        }\n\n        .log-entry {\n            padding: 1rem;\n            border-bottom: 1px solid var(--border);\n            font-family: 'Courier New', monospace;\n            font-size: 0.875rem;\n        }\n\n        .log-entry:last-child {\n            border-bottom: none;\n        }\n\n        .log-timestamp {\n            color: var(--text-secondary);\n            font-size: 0.75rem;\n            margin-bottom: 0.5rem;\n        }\n\n        .log-data {\n            display: flex;\n            flex-wrap: wrap;\n            gap: 0.5rem;\n            margin-top: 0.5rem;\n        }\n\n        .log-item {\n            padding: 0.25rem 0.5rem;\n            background: var(--surface);\n            border-radius: 4px;\n            font-size: 0.75rem;\n        }\n\n        .log-item.important {\n            background: var(--primary);\n            color: white;\n        }\n\n        .log-item.error {\n            background: var(--danger);\n            color: white;\n        }\n\n        .log-anomaly {\n            margin-top: 0.5rem;\n            padding: 0.5rem;\n            background: var(--warning);\n            color: white;\n            border-radius: 4px;\n            font-size: 0.875rem;\n        }\n\n        /* Schedule */\n        .schedule-rule {\n            border: 1px solid var(--border);\n            border-radius: var(--radius);\n            padding: 1rem;\n            margin-bottom: 1rem;\n            background: var(--background);\n        }\n\n        .schedule-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            margin-bottom: 1rem;\n        }\n\n        .schedule-days {\n            display: flex;\n            gap: 0.5rem;\n            margin: 1rem 0;\n        }\n\n        .day-btn {\n            width: 40px;\n            height: 40px;\n            border: 2px solid var(--border);\n            border-radius: 50%;\n            background: var(--surface);\n            cursor: pointer;\n            font-weight: 500;\n            font-size: 0.875rem;\n        }\n\n        .day-btn.active {\n            background: var(--primary);\n            color: white;\n            border-color: var(--primary);\n        }\n\n        .time-inputs {\n            display: grid;\n            grid-template-columns: 1fr 1fr;\n            gap: 1rem;\n            margin: 1rem 0;\n        }\n\n        .time-input {\n            padding: 0.5rem;\n            border: 1px solid var(--border);\n            border-radius: var(--radius);\n            font-size: 1rem;\n        }\n\n        /* Toast */\n        .toast {\n            position: fixed;\n            bottom: 2rem;\n            right: 2rem;\n            padding: 1rem 1.5rem;\n            background: var(--surface);\n            border-radius: var(--radius);\n            box-shadow: var(--shadow-lg);\n            transform: translateY(100px);\n            opacity: 0;\n            transition: all 0.3s;\n            max-width: 400px;\n        }\n\n        .toast.show {\n            transform: translateY(0);\n            opacity: 1;\n        }\n\n        /* Theme Toggle */\n        .theme-toggle {\n            position: fixed;\n            bottom: 2rem;\n            right: 2rem;\n            width: 50px;\n            height: 50px;\n            border-radius: 50%;\n            background: var(--primary);\n            color: white;\n            border: none;\n            cursor: pointer;\n            box-shadow: var(--shadow-lg);\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 1.5rem;\n            z-index: 100;\n        }\n\n        /* Loading */\n        .loading {\n            display: inline-block;\n            width: 20px;\n            height: 20px;\n            border: 3px solid rgba(255, 255, 255, 0.3);\n            border-radius: 50%;\n            border-top-color: white;\n            animation: spin 1s ease-in-out infinite;\n        }\n\n        @keyframes spin {\n            to {\n                transform: rotate(360deg);\n            }\n        }\n\n        /* Responsive */\n        @media (max-width: 768px) {\n            .temp-grid {\n                grid-template-columns: 1fr;\n            }\n\n            .controls {\n                grid-template-columns: 1fr;\n            }\n\n            .mode-selector {\n                grid-template-columns: repeat(2, 1fr);\n            }\n\n            .info-grid {\n                grid-template-columns: 1fr;\n            }\n\n            .tabs {\n                font-size: 0.875rem;\n            }\n\n            .tab {\n                padding: 0.5rem 1rem;\n            }\n        }\n    </style>\n</head>\n\n<body>\n    <div class=\"header\">\n        <div class=\"container\">\n            <div class=\"header-content\">\n                <h1 class=\"title\">\n                    <span>🏠</span>\n                    <span>Heat Pump Control System</span>\n                </h1>\n                <div class=\"status-bar\">\n                    <div class=\"status-indicator\">\n                        <div class=\"status-dot\" id=\"status-dot\"></div>\n                        <span id=\"status-text\">Offline</span>\n                    </div>\n                    <div class=\"status-indicator\">\n                        <span id=\"mode-text\">Mode: --</span>\n                    </div>\n                    <button class=\"btn btn-primary\" onclick=\"refreshData()\">\n                        <span>🔄</span>\n                        <span>Refresh</span>\n                    </button>\n                </div>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"container\">\n        <!-- Tabs -->\n        <div class=\"tabs\">\n            <button class=\"tab active\" onclick=\"switchTab('dashboard')\">📊 Dashboard</button>\n            <button class=\"tab\" onclick=\"switchTab('control')\">🎮 Control</button>\n            <button class=\"tab\" onclick=\"switchTab('charts')\">📈 Charts</button>\n            <button class=\"tab\" onclick=\"switchTab('schedule')\">📅 Schedule</button>\n            <button class=\"tab\" onclick=\"switchTab('logs')\">📡 Logs</button>\n        </div>\n\n        <!-- Dashboard Tab -->\n        <div id=\"dashboard-tab\" class=\"tab-content active\">\n            <!-- Temperature Display -->\n            <div class=\"temp-grid\">\n                <div class=\"temp-card\">\n                    <div class=\"temp-value\" id=\"water-in\">--</div>\n                    <div class=\"temp-label\">Water In °C</div>\n                </div>\n                <div class=\"temp-card\">\n                    <div class=\"temp-value\" id=\"water-out\">--</div>\n                    <div class=\"temp-label\">Water Out °C</div>\n                </div>\n                <div class=\"temp-card\">\n                    <div class=\"temp-value\" id=\"water-set\">--</div>\n                    <div class=\"temp-label\">Setpoint °C</div>\n                </div>\n                <div class=\"temp-card\">\n                    <div class=\"temp-value\" id=\"indoor-temp\">--</div>\n                    <div class=\"temp-label\">Indoor °C</div>\n                </div>\n            </div>\n\n            <!-- Quick Controls -->\n            <div class=\"card\">\n                <h2 class=\"card-title\">\n                    <span>⚡</span>\n                    <span>Quick Controls</span>\n                </h2>\n                <div class=\"controls\">\n                    <button class=\"btn btn-success\" onclick=\"startSystem()\" id=\"start-btn\">\n                        <span>▶️</span>\n                        <span>Start</span>\n                    </button>\n                    <button class=\"btn btn-danger\" onclick=\"stopSystem()\" id=\"stop-btn\">\n                        <span>⏹️</span>\n                        <span>Stop</span>\n                    </button>\n                </div>\n            </div>\n\n            <!-- System Info -->\n            <div class=\"card\">\n                <h2 class=\"card-title\">\n                    <span>ℹ️</span>\n                    <span>System Information</span>\n                </h2>\n                <div class=\"info-grid\">\n                    <div class=\"info-item\">\n                        <span class=\"info-label\">Temperature Difference</span>\n                        <span class=\"info-value\" id=\"temp-diff\">--°C</span>\n                    </div>\n                    <div class=\"info-item\">\n                        <span class=\"info-label\">Fan Speed</span>\n                        <span class=\"info-value\" id=\"fan-speed\">--</span>\n                    </div>\n                    <div class=\"info-item\">\n                        <span class=\"info-label\">Filter Status</span>\n                        <span class=\"info-value\" id=\"filter-status\">--</span>\n                    </div>\n                    <div class=\"info-item\">\n                        <span class=\"info-label\">Quiet Mode</span>\n                        <span class=\"info-value\" id=\"quiet-mode\">--</span>\n                    </div>\n                    <div class=\"info-item\">\n                        <span class=\"info-label\">Error Status</span>\n                        <span class=\"info-value\" id=\"error-status\">--</span>\n                    </div>\n                    <div class=\"info-item\">\n                        <span class=\"info-label\">Last Update</span>\n                        <span class=\"info-value\" id=\"last-update\">--</span>\n                    </div>\n                </div>\n            </div>\n        </div>\n\n        <!-- Control Tab -->\n        <div id=\"control-tab\" class=\"tab-content\">\n            <div class=\"card\">\n                <h2 class=\"card-title\">\n                    <span>🎮</span>\n                    <span>Manual Control</span>\n                </h2>\n\n                <div class=\"mode-selector\">\n                    <button class=\"mode-btn\" data-mode=\"cool\" onclick=\"selectMode('cool')\">\n                        <div class=\"mode-icon\">❄️</div>\n                        <div class=\"mode-name\">Cool</div>\n                    </button>\n                    <button class=\"mode-btn\" data-mode=\"heat\" onclick=\"selectMode('heat')\">\n                        <div class=\"mode-icon\">🔥</div>\n                        <div class=\"mode-name\">Heat</div>\n                    </button>\n                    <button class=\"mode-btn\" data-mode=\"auto\" onclick=\"selectMode('auto')\">\n                        <div class=\"mode-icon\">🔄</div>\n                        <div class=\"mode-name\">Auto</div>\n                    </button>\n                </div>\n\n                <div class=\"slider-container\">\n                    <div class=\"slider-header\">\n                        <h3>Temperature Setting</h3>\n                        <span style=\"font-size: 2rem; color: var(--primary);\">\n                            <span id=\"temp-value\">20</span>°C\n                        </span>\n                    </div>\n                    <input type=\"range\" class=\"slider\" id=\"temp-slider\"\n                           min=\"7\" max=\"55\" value=\"20\" step=\"0.5\"\n                           oninput=\"updateTemp(this.value)\">\n                </div>\n\n                <div class=\"controls\">\n                    <button class=\"btn btn-success\" onclick=\"startWithSettings()\">\n                        <span>▶️</span>\n                        <span>Start with Settings</span>\n                    </button>\n                    <button class=\"btn btn-danger\" onclick=\"stopSystem()\">\n                        <span>⏹️</span>\n                        <span>Stop System</span>\n                    </button>\n                </div>\n            </div>\n        </div>\n\n        <!-- Charts Tab -->\n        <div id=\"charts-tab\" class=\"tab-content\">\n            <div class=\"card\">\n                <h2 class=\"card-title\">\n                    <span>📈</span>\n                    <span>Temperature History</span>\n                </h2>\n                <div style=\"display: flex; gap: 1rem; margin-bottom: 1rem;\">\n                    <button class=\"btn btn-primary\" onclick=\"loadHistory(24)\">24h</button>\n                    <button class=\"btn btn-primary\" onclick=\"loadHistory(48)\">48h</button>\n                    <button class=\"btn btn-primary\" onclick=\"loadHistory(168)\">7 days</button>\n                </div>\n                <div class=\"chart-container\">\n                    <canvas id=\"tempChart\"></canvas>\n                </div>\n            </div>\n        </div>\n\n        <!-- Schedule Tab -->\n        <div id=\"schedule-tab\" class=\"tab-content\">\n            <div class=\"card\">\n                <h2 class=\"card-title\">\n                    <span>📅</span>\n                    <span>Schedule Settings</span>\n                </h2>\n\n                <div style=\"margin-bottom: 2rem;\">\n                    <label style=\"display: flex; align-items: center; gap: 1rem;\">\n                        <input type=\"checkbox\" id=\"schedule-enabled\" onchange=\"toggleSchedule()\">\n                        <span>Enable Scheduler</span>\n                    </label>\n                </div>\n\n                <div id=\"schedule-rules\"></div>\n\n                <button class=\"btn btn-primary\" onclick=\"addScheduleRule()\">\n                    <span>➕</span>\n                    <span>Add Rule</span>\n                </button>\n\n                <button class=\"btn btn-success\" onclick=\"saveSchedule()\" style=\"margin-top: 1rem;\">\n                    <span>💾</span>\n                    <span>Save Schedule</span>\n                </button>\n            </div>\n        </div>\n\n        <!-- Logs Tab -->\n        <div id=\"logs-tab\" class=\"tab-content\">\n            <div class=\"card\">\n                <h2 class=\"card-title\">\n                    <span>📡</span>\n                    <span>Modbus Communication Logs</span>\n                </h2>\n                <div class=\"logs-container\" id=\"logs-container\">\n                    <div style=\"text-align: center; padding: 2rem; color: var(--text-secondary);\">\n                        Loading logs...\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n\n    <button class=\"theme-toggle\" onclick=\"toggleTheme()\" title=\"Toggle theme\">\n        <span id=\"theme-icon\">🌙</span>\n    </button>\n\n    <div class=\"toast\" id=\"toast\"></div>\n\n    <script>\n        // Configuration\n        const API_BASE = '/api/heatpump';\n        let currentMode = 'auto';\n        let currentTemp = 20;\n        let systemData = {};\n        let tempChart = null;\n        let scheduleRules = [];\n\n        // Initialize\n        document.addEventListener('DOMContentLoaded', function() {\n            // Apply saved theme\n            const savedTheme = localStorage.getItem('theme') || 'light';\n            document.documentElement.setAttribute('data-theme', savedTheme);\n            document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';\n            \n            // Initialize chart\n            initChart();\n            \n            // Load initial data\n            refreshData();\n            loadSchedule();\n            loadHistory(24);\n            \n            // Auto refresh\n            setInterval(refreshData, 30000);\n            setInterval(loadLogs, 5000);\n        });\n\n        // Tab switching\n        function switchTab(tabName) {\n            document.querySelectorAll('.tab').forEach(tab => {\n                tab.classList.remove('active');\n            });\n            document.querySelectorAll('.tab-content').forEach(content => {\n                content.classList.remove('active');\n            });\n            \n            event.target.classList.add('active');\n            document.getElementById(`${tabName}-tab`).classList.add('active');\n            \n            // Load tab-specific data\n            if (tabName === 'logs') {\n                loadLogs();\n            } else if (tabName === 'charts') {\n                loadHistory(24);\n            }\n        }\n\n        // Refresh data from server\n        async function refreshData() {\n            try {\n                const response = await fetch(`${API_BASE}/status`);\n                if (response.ok) {\n                    const data = await response.json();\n                    updateUI(data);\n                } else {\n                    showToast('Failed to fetch data', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        // Update UI with new data\n        function updateUI(data) {\n            systemData = data;\n            \n            // Update status\n            const statusDot = document.getElementById('status-dot');\n            const statusText = document.getElementById('status-text');\n            \n            if (data.ac_on === 1) {\n                statusDot.classList.add('active');\n                statusText.textContent = 'Online';\n                document.getElementById('start-btn').disabled = true;\n                document.getElementById('stop-btn').disabled = false;\n            } else {\n                statusDot.classList.remove('active');\n                statusText.textContent = 'Offline';\n                document.getElementById('start-btn').disabled = false;\n                document.getElementById('stop-btn').disabled = true;\n            }\n            \n            // Update mode\n            document.getElementById('mode-text').textContent = `Mode: ${data.ac_mode_text || 'Unknown'}`;\n            \n            // Update temperatures\n            document.getElementById('water-in').textContent = \n                data.water_in_c !== undefined ? data.water_in_c.toFixed(1) : '--';\n            document.getElementById('water-out').textContent = \n                data.water_out_c !== undefined ? data.water_out_c.toFixed(1) : '--';\n            document.getElementById('water-set').textContent = \n                data.water_set_c !== undefined ? data.water_set_c.toFixed(1) : '--';\n            document.getElementById('indoor-temp').textContent = \n                data.indoor_temp_c !== undefined ? data.indoor_temp_c.toFixed(1) : '--';\n            \n            // Update info\n            if (data.water_in_c !== undefined && data.water_out_c !== undefined) {\n                const diff = Math.abs(data.water_out_c - data.water_in_c);\n                document.getElementById('temp-diff').textContent = diff.toFixed(1) + '°C';\n            }\n            \n            document.getElementById('fan-speed').textContent = data.fan_speed_text || '--';\n            document.getElementById('filter-status').textContent = data.filter_alarm_text || '--';\n            document.getElementById('quiet-mode').textContent = data.quiet_control_text || '--';\n            \n            // Error status\n            if (data.error_code_indoor > 0 || data.error_code_outdoor > 0) {\n                document.getElementById('error-status').textContent = 'Error detected';\n                document.getElementById('error-status').style.color = 'var(--danger)';\n            } else {\n                document.getElementById('error-status').textContent = 'No errors';\n                document.getElementById('error-status').style.color = 'var(--success)';\n            }\n            \n            // Last update\n            document.getElementById('last-update').textContent = \n                new Date().toLocaleTimeString();\n        }\n\n        // Mode selection\n        function selectMode(mode) {\n            currentMode = mode;\n            document.querySelectorAll('.mode-btn').forEach(btn => {\n                btn.classList.remove('active');\n            });\n            document.querySelector(`[data-mode=\"${mode}\"]`).classList.add('active');\n            \n            // Adjust temperature range based on mode\n            const slider = document.getElementById('temp-slider');\n            if (mode === 'cool') {\n                slider.min = 7;\n                slider.max = 25;\n                currentTemp = Math.min(currentTemp, 25);\n            } else if (mode === 'heat') {\n                slider.min = 25;\n                slider.max = 55;\n                currentTemp = Math.max(currentTemp, 25);\n            }\n            slider.value = currentTemp;\n            updateTemp(currentTemp);\n        }\n\n        // Temperature update\n        function updateTemp(value) {\n            currentTemp = parseFloat(value);\n            document.getElementById('temp-value').textContent = currentTemp;\n        }\n\n        // Start system\n        async function startSystem() {\n            try {\n                const response = await fetch(`${API_BASE}/control`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({\n                        action: 'start',\n                        mode: 0, // Auto\n                        temperature: 20\n                    })\n                });\n                \n                if (response.ok) {\n                    showToast('System starting...', 'success');\n                    setTimeout(refreshData, 3000);\n                } else {\n                    showToast('Failed to start system', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        // Start with settings\n        async function startWithSettings() {\n            const modeMap = {\n                'cool': 1,\n                'heat': 4,\n                'auto': 0\n            };\n            \n            try {\n                const response = await fetch(`${API_BASE}/control`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({\n                        action: 'start',\n                        mode: modeMap[currentMode] || 0,\n                        temperature: currentTemp\n                    })\n                });\n                \n                if (response.ok) {\n                    showToast('System starting...', 'success');\n                    setTimeout(refreshData, 3000);\n                } else {\n                    showToast('Failed to start system', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        // Stop system\n        async function stopSystem() {\n            try {\n                const response = await fetch(`${API_BASE}/control`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({ action: 'stop' })\n                });\n                \n                if (response.ok) {\n                    showToast('System stopping...', 'success');\n                    setTimeout(refreshData, 3000);\n                } else {\n                    showToast('Failed to stop system', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        // Load logs\n        async function loadLogs() {\n            try {\n                const response = await fetch(`${API_BASE}/logs`);\n                if (response.ok) {\n                    const data = await response.json();\n                    displayLogs(data.logs);\n                }\n            } catch (error) {\n                console.error('Error loading logs:', error);\n            }\n        }\n\n        // Display logs\n        function displayLogs(logs) {\n            const container = document.getElementById('logs-container');\n            \n            if (!logs || logs.length === 0) {\n                container.innerHTML = '<div style=\"text-align: center; padding: 2rem; color: var(--text-secondary);\">No logs available</div>';\n                return;\n            }\n            \n            container.innerHTML = logs.map(log => {\n                let html = `\n                    <div class=\"log-entry\">\n                        <div class=\"log-timestamp\">\n                            ${new Date(log.timestamp).toLocaleString()} - ${log.topic} \n                            (${log.responseTime || 0}ms)\n                        </div>\n                        <div class=\"log-data\">\n                `;\n                \n                if (log.response && log.response.interpretation) {\n                    log.response.interpretation.forEach(item => {\n                        const classes = ['log-item'];\n                        if (item.important) classes.push('important');\n                        if (item.name.includes('Error') && item.raw !== 0) classes.push('error');\n                        \n                        html += `<span class=\"${classes.join(' ')}\">${item.register}: ${item.value}</span>`;\n                    });\n                }\n                \n                html += '</div>';\n                \n                if (log.anomalies && log.anomalies.length > 0) {\n                    html += `<div class=\"log-anomaly\">${log.anomalies.join(' ')}</div>`;\n                }\n                \n                html += '</div>';\n                return html;\n            }).join('');\n        }\n\n        // Initialize chart\n        function initChart() {\n            const ctx = document.getElementById('tempChart').getContext('2d');\n            tempChart = new Chart(ctx, {\n                type: 'line',\n                data: {\n                    labels: [],\n                    datasets: []\n                },\n                options: {\n                    responsive: true,\n                    maintainAspectRatio: false,\n                    plugins: {\n                        legend: {\n                            position: 'top',\n                        },\n                        title: {\n                            display: true,\n                            text: 'Temperature History'\n                        }\n                    },\n                    scales: {\n                        y: {\n                            beginAtZero: false,\n                            title: {\n                                display: true,\n                                text: 'Temperature (°C)'\n                            }\n                        }\n                    }\n                }\n            });\n        }\n\n        // Load history data\n        async function loadHistory(hours) {\n            try {\n                const response = await fetch(`${API_BASE}/history?hours=${hours}`);\n                if (response.ok) {\n                    const data = await response.json();\n                    updateChart(data);\n                }\n            } catch (error) {\n                console.error('Error loading history:', error);\n            }\n        }\n\n        // Update chart with new data\n        function updateChart(data) {\n            if (tempChart && data) {\n                tempChart.data = data;\n                tempChart.update();\n            }\n        }\n\n        // Schedule functions\n        async function loadSchedule() {\n            try {\n                const response = await fetch(`${API_BASE}/schedule`);\n                if (response.ok) {\n                    const data = await response.json();\n                    scheduleRules = data.rules || [];\n                    document.getElementById('schedule-enabled').checked = data.enabled || false;\n                    renderScheduleRules();\n                }\n            } catch (error) {\n                console.error('Error loading schedule:', error);\n            }\n        }\n\n        function renderScheduleRules() {\n            const container = document.getElementById('schedule-rules');\n            container.innerHTML = scheduleRules.map((rule, index) => `\n                <div class=\"schedule-rule\">\n                    <div class=\"schedule-header\">\n                        <input type=\"text\" value=\"${rule.name}\" \n                               onchange=\"updateRuleName(${index}, this.value)\"\n                               style=\"font-weight: 600; border: none; background: none;\">\n                        <button class=\"btn btn-danger\" onclick=\"removeRule(${index})\">Remove</button>\n                    </div>\n                    \n                    <label>\n                        <input type=\"checkbox\" ${rule.enabled ? 'checked' : ''} \n                               onchange=\"updateRuleEnabled(${index}, this.checked)\">\n                        Enabled\n                    </label>\n                    \n                    <div class=\"schedule-days\">\n                        ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, dayIndex) => `\n                            <button class=\"day-btn ${rule.days.includes(dayIndex) ? 'active' : ''}\"\n                                    onclick=\"toggleDay(${index}, ${dayIndex})\">\n                                ${day}\n                            </button>\n                        `).join('')}\n                    </div>\n                    \n                    <div class=\"time-inputs\">\n                        <div>\n                            <label>Start Time</label>\n                            <input type=\"time\" class=\"time-input\" value=\"${rule.startTime}\"\n                                   onchange=\"updateRuleTime(${index}, 'startTime', this.value)\">\n                        </div>\n                        <div>\n                            <label>End Time</label>\n                            <input type=\"time\" class=\"time-input\" value=\"${rule.endTime}\"\n                                   onchange=\"updateRuleTime(${index}, 'endTime', this.value)\">\n                        </div>\n                    </div>\n                    \n                    <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;\">\n                        <div>\n                            <label>Mode</label>\n                            <select onchange=\"updateRuleMode(${index}, this.value)\" \n                                    style=\"width: 100%; padding: 0.5rem;\">\n                                <option value=\"cool\" ${rule.mode === 'cool' ? 'selected' : ''}>Cool</option>\n                                <option value=\"heat\" ${rule.mode === 'heat' ? 'selected' : ''}>Heat</option>\n                                <option value=\"auto\" ${rule.mode === 'auto' ? 'selected' : ''}>Auto</option>\n                            </select>\n                        </div>\n                        <div>\n                            <label>Temperature</label>\n                            <input type=\"number\" value=\"${rule.temperature}\" min=\"7\" max=\"55\" step=\"0.5\"\n                                   onchange=\"updateRuleTemp(${index}, this.value)\"\n                                   style=\"width: 100%; padding: 0.5rem;\">\n                        </div>\n                    </div>\n                </div>\n            `).join('');\n        }\n\n        function addScheduleRule() {\n            scheduleRules.push({\n                id: Date.now(),\n                name: `Rule ${scheduleRules.length + 1}`,\n                enabled: true,\n                days: [1, 2, 3, 4, 5],\n                startTime: \"08:00\",\n                endTime: \"22:00\",\n                mode: \"auto\",\n                temperature: 20\n            });\n            renderScheduleRules();\n        }\n\n        function removeRule(index) {\n            scheduleRules.splice(index, 1);\n            renderScheduleRules();\n        }\n\n        function updateRuleName(index, value) {\n            scheduleRules[index].name = value;\n        }\n\n        function updateRuleEnabled(index, value) {\n            scheduleRules[index].enabled = value;\n        }\n\n        function toggleDay(ruleIndex, dayIndex) {\n            const days = scheduleRules[ruleIndex].days;\n            const idx = days.indexOf(dayIndex);\n            if (idx > -1) {\n                days.splice(idx, 1);\n            } else {\n                days.push(dayIndex);\n                days.sort();\n            }\n            renderScheduleRules();\n        }\n\n        function updateRuleTime(index, field, value) {\n            scheduleRules[index][field] = value;\n        }\n\n        function updateRuleMode(index, value) {\n            scheduleRules[index].mode = value;\n        }\n\n        function updateRuleTemp(index, value) {\n            scheduleRules[index].temperature = parseFloat(value);\n        }\n\n        function toggleSchedule() {\n            // Just update UI, actual save happens with saveSchedule()\n        }\n\n        async function saveSchedule() {\n            try {\n                const response = await fetch(`${API_BASE}/schedule`, {\n                    method: 'POST',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify({\n                        enabled: document.getElementById('schedule-enabled').checked,\n                        rules: scheduleRules\n                    })\n                });\n                \n                if (response.ok) {\n                    showToast('Schedule saved successfully', 'success');\n                } else {\n                    showToast('Failed to save schedule', 'error');\n                }\n            } catch (error) {\n                console.error('Error:', error);\n                showToast('Connection error', 'error');\n            }\n        }\n\n        // Toggle theme\n        function toggleTheme() {\n            const currentTheme = document.documentElement.getAttribute('data-theme');\n            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';\n            document.documentElement.setAttribute('data-theme', newTheme);\n            document.getElementById('theme-icon').textContent = newTheme === 'dark' ? '☀️' : '🌙';\n            localStorage.setItem('theme', newTheme);\n        }\n\n        // Show toast notification\n        function showToast(message, type = 'info') {\n            const toast = document.getElementById('toast');\n            toast.textContent = message;\n            toast.className = 'toast show';\n            \n            if (type === 'error') {\n                toast.style.borderLeft = '4px solid var(--danger)';\n            } else if (type === 'success') {\n                toast.style.borderLeft = '4px solid var(--success)';\n            } else {\n                toast.style.borderLeft = '4px solid var(--primary)';\n            }\n            \n            setTimeout(() => {\n                toast.classList.remove('show');\n            }, 3000);\n        }\n    </script>\n</body>\n\n</html>",
+        "output": "str",
+        "x": 510,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "95d0dcb68fe7e576",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "heatpump",
+        "name": "HeatPump InfluxDB",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "145bc96e15c34554",
+        "type": "modbus-client",
+        "name": "RS485 - ACM0",
+        "clienttype": "serial",
+        "bufferCommands": true,
+        "stateLogEnabled": true,
+        "queueLogEnabled": true,
+        "failureLogEnabled": true,
+        "tcpHost": "127.0.0.1",
+        "tcpPort": "10502",
+        "tcpType": "DEFAULT",
+        "serialPort": "/dev/ttyACM0",
+        "serialType": "RTU",
+        "serialBaudrate": "9600",
+        "serialDatabits": "8",
+        "serialStopbits": "1",
+        "serialParity": "even",
+        "serialConnectionDelay": "100",
+        "serialAsciiResponseStartDelimiter": "0x3A",
+        "unit_id": 1,
+        "commandDelay": 1,
+        "clientTimeout": 1000,
+        "reconnectOnTimeout": true,
+        "reconnectTimeout": 2000,
+        "parallelUnitIdsAllowed": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "showLogs": true
+    },
+    {
+        "id": "d8dacbe6.2fdca8",
+        "type": "influxdb",
+        "hostname": "localhost",
+        "port": "8086",
+        "protocol": "http",
+        "database": "fronius",
+        "name": "",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://192.168.100.25:8086",
+        "timeout": "",
+        "rejectUnauthorized": false,
+        "info": "tocken: MrpgI7ILnX926CWMjVA0qCq9pp0zU8g_V9gZD3wvrkM7oFCvi7V7QkA1NWkXVboTv9D8ymADy2dMYrQm5PPU_w==\n"
+    },
+    {
+        "id": "719b65afc1f32f4d",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0",
+            "node-red-contrib-modbus": "5.43.0"
+        }
+    }
+]
